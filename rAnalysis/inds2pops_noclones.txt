@@ -1,0 +1,78 @@
+Cuba_01.trim.bt2.bam	Banco de San Antonio
+Cuba_02.trim.bt2.bam	Banco de San Antonio
+Cuba_04.trim.bt2.bam	Guanahacabibes
+Cuba_06.trim.bt2.bam	Guanahacabibes
+Cuba_09.trim.bt2.bam	Guanahacabibes
+Cuba_10.trim.bt2.bam	Guanahacabibes
+Cuba_11.trim.bt2.bam	Guanahacabibes
+Cuba_12.trim.bt2.bam	Guanahacabibes
+Cuba_13.trim.bt2.bam	Guanahacabibes
+Cuba_14.trim.bt2.bam	Guanahacabibes
+Cuba_15.trim.bt2.bam	Guanahacabibes
+Cuba_16.trim.bt2.bam	Guanahacabibes
+Cuba_17.trim.bt2.bam	Guanahacabibes
+Cuba_18-1.trim.bt2.bam	Guanahacabibes
+Cuba_19.trim.bt2.bam	Isla de la Juventud
+Cuba_20.trim.bt2.bam	Isla de la Juventud
+Cuba_21.trim.bt2.bam	Isla de la Juventud
+Cuba_22.trim.bt2.bam	Cayo Anclitas
+Cuba_23.trim.bt2.bam	Cayo Anclitas
+Cuba_24.trim.bt2.bam	Cayo Anclitas
+Cuba_25.trim.bt2.bam	Cayo Anclitas
+Cuba_26.trim.bt2.bam	Cayo Anclitas
+Cuba_27.trim.bt2.bam	Cayo Anclitas
+Cuba_28.trim.bt2.bam	Cayo Anclitas
+Cuba_30.trim.bt2.bam	Cayo Anclitas
+Cuba_31.trim.bt2.bam	Cayo Anclitas
+Cuba_32.trim.bt2.bam	Cayo Anclitas
+Cuba_33.trim.bt2.bam	Cayo Anclitas
+Cuba_34.trim.bt2.bam	Cayo Anclitas
+Cuba_35.trim.bt2.bam	Cayo Anclitas
+Cuba_36.trim.bt2.bam	Cayo Anclitas
+Cuba_37.trim.bt2.bam	Chivirico
+Cuba_38.trim.bt2.bam	Chivirico
+Cuba_43.trim.bt2.bam	Chivirico
+Cuba_44.trim.bt2.bam	Chivirico
+Cuba_45.trim.bt2.bam	Chivirico
+Cuba_46.trim.bt2.bam	Chivirico
+Cuba_47.trim.bt2.bam	Chivirico
+Cuba_48.trim.bt2.bam	Chivirico
+Cuba_49.trim.bt2.bam	Chivirico
+Cuba_50.trim.bt2.bam	Chivirico
+Cuba_51.trim.bt2.bam	Chivirico
+Cuba_52.trim.bt2.bam	Cabo Lucrecia
+Cuba_53.trim.bt2.bam	Cabo Lucrecia
+Cuba_54.trim.bt2.bam	Cabo Lucrecia
+Cuba_55.trim.bt2.bam	Cabo Lucrecia
+Cuba_56.trim.bt2.bam	Cabo Lucrecia
+Cuba_57.trim.bt2.bam	Cabo Lucrecia
+Cuba_58.trim.bt2.bam	Cabo Lucrecia
+Cuba_59.trim.bt2.bam	Cabo Lucrecia
+Cuba_60.trim.bt2.bam	Cabo Lucrecia
+Cuba_61-1.trim.bt2.bam	Cabo Lucrecia
+Cuba_62.trim.bt2.bam	Cabo Lucrecia
+Cuba_63.trim.bt2.bam	Cabo Lucrecia
+Cuba_65.trim.bt2.bam	Cabo Lucrecia
+Cuba_66.trim.bt2.bam	Cabo Lucrecia
+Cuba_67.trim.bt2.bam	Cabo Lucrecia
+Cuba_68.trim.bt2.bam	Cabo Lucrecia
+Cuba_69.trim.bt2.bam	Cayo Sabinal
+Cuba_70.trim.bt2.bam	Cayo Sabinal
+Cuba_71.trim.bt2.bam	Cayo Sabinal
+Cuba_73.trim.bt2.bam	Cayo Sabinal
+Cuba_74.trim.bt2.bam	Cayo Sabinal
+Cuba_75.trim.bt2.bam	Cayo Sabinal
+Cuba_76.trim.bt2.bam	Cayo Sabinal
+Cuba_77.trim.bt2.bam	Cayo Sabinal
+Cuba_78.trim.bt2.bam	Cayo Sabinal
+Cuba_81.trim.bt2.bam	Cayo Sabinal
+Cuba_82.trim.bt2.bam	Cayo Sabinal
+Cuba_83.trim.bt2.bam	Cayo Sabinal
+Cuba_86.trim.bt2.bam	Cayo Jutias
+Cuba_88.trim.bt2.bam	Cayo Jutias
+Cuba_89.trim.bt2.bam	Cayo Jutias
+Cuba_90.trim.bt2.bam	Cayo Jutias
+Cuba_91.trim.bt2.bam	Cayo Jutias
+Cuba_93.trim.bt2.bam	Cayo Jutias
+Cuba_94.trim.bt2.bam	Cayo Jutias
+Cuba_96.trim.bt2.bam	Cayo Jutias

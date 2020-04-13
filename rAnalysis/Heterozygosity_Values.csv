@@ -1,0 +1,33 @@
+﻿Population,Analysis Type,Heterozygosity,Type,Error
+Banco de San Antonio,SNP,0.20401,Observed,0.00321
+Banco de San Antonio,SNP,0.16049,Expected,0.0021
+Guanahacabibes,SNP,0.24965,Observed,0.00196
+Guanahacabibes,SNP,0.2559,Expected,0.0016
+Isla de la Juventud,SNP,0.24811,Observed,0.00279
+Isla de la Juventud,SNP,0.23487,Expected,0.00199
+Cayo Anclitas,SNP,0.24865,Observed,0.00197
+Cayo Anclitas,SNP,0.24911,Expected,0.00161
+Chivirico,SNP,0.25335,Observed,0.00204
+Chivirico,SNP,0.2564,Expected,0.00162
+Cabo Lucrecia,SNP,0.23918,Observed,0.00194
+Cabo Lucrecia,SNP,0.23939,Expected,0.00159
+Cayo Sabinal,SNP,0.24336,Observed,0.00203
+Cayo Sabinal,SNP,0.24552,Expected,0.00163
+Cayo Jutias,SNP,0.22837,Observed,0.00224
+Cayo Jutias,SNP,0.22059,Expected,0.00177
+Banco de San Antonio,Microsatellite,0.389,Observed,0.111
+Banco de San Antonio,Microsatellite,0.389,Expected,0.057
+Guanahacabibes,Microsatellite,0.676,Observed,0.053
+Guanahacabibes,Microsatellite,0.708,Expected,0.059
+Isla de la Juventud,Microsatellite,0.704,Observed,0.117
+Isla de la Juventud,Microsatellite,0.543,Expected,0.09
+Cayo Anclitas,Microsatellite,0.733,Observed,0.068
+Cayo Anclitas,Microsatellite,0.697,Expected,0.059
+Chivirico,Microsatellite,0.677,Observed,0.051
+Chivirico,Microsatellite,0.675,Expected,0.058
+Cabo Lucrecia,Microsatellite,0.711,Observed,0.068
+Cabo Lucrecia,Microsatellite,0.704,Expected,0.064
+Cayo Sabinal,Microsatellite,0.737,Observed,0.054
+Cayo Sabinal,Microsatellite,0.723,Expected,0.05
+Cayo Jutias,Microsatellite,0.639,Observed,0.067
+Cayo Jutias,Microsatellite,0.68,Expected,0.066
