@@ -360,6 +360,31 @@ cubaOrdPlots
 ggsave("../figures/ordPlots.eps", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
 ggsave("../figures/ordPlots.tiff", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
 
+####----------------- AMOVA for SNPs -----------------------------------------------------------
+
+cubaVcf = read.vcfR("trimmed_mc_renamed.vcf.gz") 
+cubaGenlight = vcfR2genlight(cubaVcf, n.cores = 2) 
+locNames(cubaGenlight) = paste(cubaVcf@fix[,1],cubaVcf@fix[,2],sep="_") 
+popData = read.table("vcf_popmap")
+popData$depth = factor("Shallow", levels = c("Shallow", "Mesophotic"))
+popData$depth[c(1:2)] = "Mesophotic"
+levels(popData$depth)
+
+colnames(popData) = c("sample","population", "depth") 
+levels(popData$population) = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutias",
+                               "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud" ) 
+strata(cubaGenlight) = data.frame(popData)
+setPop(cubaGenlight) = ~population
+
+cubaGenlight
+
+amova <- poppr.amova(cubaGenlight, ~population)
+amova
+
+set.seed(1999)
+amovasignif   <- randtest(amova, nrepet = 999)
+amovasignif
+
 ####----------------- Fst Heat Map ------------------------------------------------------------------
 ### Microsats ------- 
 # reads in fst matrix
@@ -774,6 +799,17 @@ modelKPlots
 ggsave("../figures/modelKPlots.tiff", width = 17, height = 16, units = "cm", dpi = 300)
 ggsave("../figures/modelKPlots.eps", width = 17, height = 16, units = "cm", dpi = 300)
 
+####----------------- Outlier SNP Analysis ------------------------------------------------------------------
+
+source('plot_R.r')
+lociFST=read.table("trimmed_mc.baye_fst.txt",header=T)
+head(lociFST)
+outs=which(lociFST[,"qval"]<0.1)
+plot_bayescan("trimmed_mc.baye_fst.txt",FDR=0.1,add_text=F,size=0.5,highlight=outs)
+
+#Search the mc_noclones.mafs file for these SNPs loci's location and reference it against annotated gene locations and function
+
+
 ####----------------- STRUCTURE/ADMIXTURE Plots -----------------------------------------------------
 ### Microsats -------
 msStructure = read.csv("sortedK2-microsat-structure.csv")
@@ -872,7 +908,7 @@ ggsave("../figures/combinedADMIXTURE2.eps", plot = combinedAdmix, width = 30, he
 dfZoox = read.csv("zoox-proportions.csv")
 zDat = melt(dfZoox, id.vars = c("Sample", "Population"), variable.name = "Symbiont", value.name = "Fraction")
 
-col3 = brewer.pal(4, "YlGnBu")
+col3 = brewer.pal(4, "BrBG")
 names(col3) = levels(zDat$Symbiont)
 
 zooxPlotA = ggplot(zDat, aes(x = Sample, y = Fraction, fill = Symbiont, order = Sample)) +
