@@ -12,9 +12,9 @@ Cuba_14	Guanahacabibes
 Cuba_15	Guanahacabibes
 Cuba_16	Guanahacabibes
 Cuba_17	Guanahacabibes
-Cuba_18	Guanahacabibes
 Cuba_18-1	Guanahacabibes
 Cuba_18-2	Guanahacabibes
+Cuba_18-3	Guanahacabibes
 Cuba_19	Isla de la Juventud
 Cuba_20	Isla de la Juventud
 Cuba_21	Isla de la Juventud
@@ -38,7 +38,7 @@ Cuba_41	Chivirico
 Cuba_43	Chivirico
 Cuba_44-1	Chivirico
 Cuba_44-2	Chivirico
-Cuba_44	Chivirico
+Cuba_44-3	Chivirico
 Cuba_45	Chivirico
 Cuba_46	Chivirico
 Cuba_47	Chivirico
@@ -57,7 +57,7 @@ Cuba_59	Cabo Lucrecia
 Cuba_60	Cabo Lucrecia
 Cuba_61-1	Cabo Lucrecia
 Cuba_61-2	Cabo Lucrecia
-Cuba_61	Cabo Lucrecia
+Cuba_61-3	Cabo Lucrecia
 Cuba_62	Cabo Lucrecia
 Cuba_63	Cabo Lucrecia
 Cuba_65	Cabo Lucrecia

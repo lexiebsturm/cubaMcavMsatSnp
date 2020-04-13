@@ -1,4 +1,4 @@
-setwd("~/Documents/HBOI/Writing/Cuba_Mcav/analysis/")
+setwd("~/Documents/GitHub/cubaMcavMsatSnp/rAnalysis/")
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patchwork", "poppr", 
@@ -28,8 +28,8 @@ cloneDend %>%
   plot(ylab="Genetic Distance (1-IBS)", cex.lab=1.3, xlab=NA, sub=NA, main=NA) %>%
   abline(h = 0.15, col = "red", lty = 3, lwd = 2) %>% axis(side = 2, lwd = 1.5)
    
-dev.off()
-dev.new()
+#dev.off()
+#dev.new()
 ####----------- Heterozygosity Plot -----------------------------------------------------------------
 cubaHetero = read.csv("Heterozygosity_Values.csv", header = TRUE)
 
