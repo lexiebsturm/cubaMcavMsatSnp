@@ -1,0 +1,107 @@
+---
+title: "Cuba Montastraea cavernosa Microsatellite and SNP Analyses and Figures in R"
+author: "Alexis Sturm"
+date: "4/14/2020"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+***
+#About this document
+***
+All analyses were performed in R version 3.6.2. 
+This is the code that accompanies the publication XXX. Here you will find all the code to repeat the statistical analyses performed in R and figures created for the manuscript. The accompanying library preparation protocol and bioinformatic walkthrough can be found by clicking on the links.
+
+Code to produce these figures was generated with help from Ryan Eckert, if you think this walkthrough is helpful check out similar ones for Symbiodiniaceae ITS2 analyses here.
+
+***
+#Basic setup of R environment
+***
+```{r, setup1, include = FALSE}
+knitr::opts_chunk$set(warning = FALSE, fig.align = 'left', fig.dim = c(4,4))
+# If we wanted to use real data housed in a folder at the same directory level as our present working directory (i.e. "code/") we could use the following to set the directory to the "data" directory. Two periods(..) means the containing directory. So below we are saying our ne working directory is the "data" folder in the folder which also contains the "code" folder.
+
+knitr::opts_knit$set(root.dir = '../rAnalysis')
+
+options(width = 88)
+```
+
+##Loading required packages
+Make sure to set the working directory: 
+setwd("~/path/to/directory/with/data")
+
+For the following analyses we will require the use of multiple different R packages, we can use the package *pacman* to quickly load them.
+```{r, load packages, include = TRUE, message = FALSE, warning = FALSE, results = 'hide'}
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patchwork", "poppr", "RColorBrewer", "reshape2", "StAMPP", "tidyverse", "vcfR", "vegan", "paletteer", "WGCNA")
+
+```
+
+#Figures and analyses
+##Figure 1: IBS dendrogram with clones
+The following chunk of code uses the IBS matrix generated from ANGSD to produce an Identity-By-State Dendrogram which we can use to ensure that technical replicates are clustering together and to identify natural clones from the SNP dataset.
+
+```{r, SNP IBS Dendrogram With Clones}
+cloneBams = read.table("sample_list")[,1] # list of bam files
+cloneMa = as.matrix(read.table("trimmed_mc_w_clones.ibsMat")) # reads in IBS matrix produced by ANGSD
+dimnames(cloneMa) = list(cloneBams,cloneBams)
+clonesHc = hclust(as.dist(cloneMa),"ave")
+
+cloneMeta = read.table("clonePops.txt", sep="\t") # list of bams files and their populations
+clonePops = cloneMeta$V2
+
+cloneDend = as.dendrogram(hclust(as.dist(cloneMa),"ave"))
+dendPops = labels2colors(as.numeric(as.factor(as.numeric(clonePops))), colorSeq = brewer.pal(8, "Dark2"))[order.dendrogram(cloneDend)]
+```
+
+Then you can export the figure as a .eps file
+```{r, Save SNP IBS Dendrogram With Clones}
+setEPS()
+postscript("clonesDend.eps", width = 17, height = 6, pointsize = 12)
+
+cloneDend %>% 
+  hang.dendrogram %>% # hang the leaves
+  set("leaves_pch", 19) %>% set("leaves_cex", 1.8) %>% set("leaves_col", dendPops) %>%
+  set("branches_lwd",1.5) %>% set("labels_cex", 1.3) %>%
+  plot(ylab="Genetic Distance (1-IBS)", cex.lab=1.3, xlab=NA, sub=NA, main=NA) %>%
+  abline(h = 0.15, col = "red", lty = 3, lwd = 2) %>% axis(side = 2, lwd = 1.5)
+
+```
+
+##Figure 2: Heterozygosity plot
+Observed and expected heterozygosity values were calculated for microsatellites in GenAlEx and for SNPs using the *populations* function in the popular RADseq analysis program, *STACKS*. These values, and 
+
+```{r, Heterozygosity plot}
+cubaHetero = read.csv("Heterozygosity_Values.csv", header = TRUE)
+
+hetPlotA = ggplot(cubaHetero, aes(x = Analysis.Type, y = Heterozygosity, fill = Population, 
+                                  alpha = Type)) +
+  geom_bar(position = position_dodge(), stat = "identity", color = 'black') +
+  scale_y_continuous(expand = c(0, 0)) +
+  geom_errorbar(aes(ymin = Heterozygosity-Error, ymax = Heterozygosity+Error), 
+                width = 0.6, position = position_dodge(0.9)) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_alpha_manual(values = c(1, 0.75), name = "Heterozygosity") +
+  labs(x ="Analysis Type", y = "Heterozygosity") +
+  guides(fill = guide_legend(order = 1)) +
+  theme_classic() 
+
+hetPlot = hetPlotA + theme(panel.border = element_blank(), 
+                           panel.grid.major = element_blank(), 
+                           panel.grid.minor = element_blank(), 
+                           axis.line = element_line(color = "black"),
+                           axis.text = element_text(size = 14, color = "black"),
+                           axis.title.y = element_text(size = 14),
+                           legend.title = element_text(size = 14),
+                           legend.text = element_text(size = 14),
+                           axis.title.x = element_blank())
+
+hetPlot
+```
