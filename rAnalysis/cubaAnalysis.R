@@ -1,3 +1,4 @@
+library(pacman)
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patchwork", "poppr", 
                "RColorBrewer", "reshape2", "StAMPP", "tidyverse", "vcfR", "vegan", "paletteer", "WGCNA")
@@ -862,7 +863,7 @@ plot_bayescan("trimmed_mc.baye_fst.txt",FDR=0.1,add_text=F,size=0.5,highlight=ou
 ####----------------- STRUCTURE/ADMIXTURE Plots -----------------------------------------------------
 ### Microsats -------
 msStr = read.csv("sortedK2-microsat-structure.csv")
-msStr$Sample = factor(msStrSample, 
+msStr$Sample = factor(msStr$Sample, 
                              levels = msStr$Sample[order(msStr$Cluster2)])
 msStr$Order = c(1:nrow(msStr))
 msStrDat = melt(msStr, id.vars = c("Sample", "Population", "Order"), 
