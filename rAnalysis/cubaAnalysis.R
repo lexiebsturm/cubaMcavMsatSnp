@@ -1,5 +1,3 @@
-setwd("~/Documents/GitHub/cubaMcavMsatSnp/rAnalysis/")
-
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patchwork", "poppr", 
                "RColorBrewer", "reshape2", "StAMPP", "tidyverse", "vcfR", "vegan", "paletteer", "WGCNA")
@@ -13,23 +11,73 @@ clonesHc = hclust(as.dist(cloneMa),"ave")
 cloneMeta = read.table("clonePops.txt", sep="\t")
 clonePops = cloneMeta$V2
 
-cloneDend = as.dendrogram(hclust(as.dist(cloneMa),"ave"))
-dendPops = labels2colors(as.numeric(as.factor(as.numeric(clonePops))), 
-                         colorSeq = brewer.pal(8, "Dark2"))[order.dendrogram(cloneDend)]
+cloneDend = cloneMa %>% as.dist() %>% hclust(.,"ave") %>% as.dendrogram()
+cloneDData = cloneDend %>% dendro_data()
 
-# export as .eps
-setEPS()
-postscript("clonesDend.eps", width = 17, height = 6, pointsize = 12)
+# Making the branches hang shorter so we can easily see clonal groups
+cloneDData$segments$yend2 = cloneDData$segments$yend
+for(i in 1:nrow(cloneDData$segments)){
+  if(cloneDData$segments$yend2[i] == 0){
+    cloneDData$segments$yend2[i] = (cloneDData$segments$y[i] - 0.03)
+    }
+}
 
-cloneDend %>% 
-  hang.dendrogram %>% # hang the leaves
-  set("leaves_pch", 19) %>% set("leaves_cex", 1.8) %>% set("leaves_col", dendPops) %>%
-  set("branches_lwd",1.5) %>% set("labels_cex", 1.3) %>%
-  plot(ylab="Genetic Distance (1-IBS)", cex.lab=1.3, xlab=NA, sub=NA, main=NA) %>%
-  abline(h = 0.15, col = "red", lty = 3, lwd = 2) %>% axis(side = 2, lwd = 1.5)
-   
-dev.off()
-dev.new()
+cloneDendPoints = cloneDData$labels
+cloneDendPoints$pop = clonePops[order.dendrogram(cloneDend)]
+rownames(cloneDendPoints) = cloneDendPoints$label
+
+# Making points at the leaves to place symbols for populations
+point = as.vector(NA)
+for(i in 1:nrow(cloneDData$segments)){
+  if(cloneDData$segments$yend[i] == 0){
+    point[i] = cloneDData$segments$y[i] - 0.03
+  } else {
+    point[i] = NA
+    }
+}
+
+cloneDendPoints$y = point[!is.na(point)]
+
+head(cloneDendPoints)
+
+cloneDendA = ggplot() +
+  geom_segment(data = segment(cloneDData), aes(x = x, y = y, xend = xend, yend = yend2), size = 0.5) +
+  geom_point(data = cloneDendPoints, aes(x = x, y = y, fill = pop), size = 4, shape = 21, stroke = 0.25) +
+  geom_hline(yintercept = 0.15, color = "red", lty = 5, size = 0.75) +
+  geom_text(data = subset(cloneDendPoints, subset = label %in% c("44-1", "44-2", "44-3", "61-1", "61-2", "61-3", "18-1", "18-2", "18-3")), aes(x = x, y = (y - .015), label = label), angle = 90) +
+  geom_text(data = subset(cloneDendPoints, subset = !label %in% c("44-1", "44-2", "44-3", "61-1", "61-2", "61-3", "18-1", "18-2", "18-3")), aes(x = x, y = (y - .010), label = label), angle = 90) +
+  #add astrices before the true clones
+  geom_text(data = subset(cloneDendPoints, subset = label %in% c("03", "04", "41", "43")), aes(x = (x + .5), y = (y - .018), label = "*"), angle = 90, size = 6) +
+  scale_fill_brewer(palette = "Dark2", name = "Population") +
+  guides(fill = guide_legend(override.aes = list(size = 4), ncol = 2)) +
+  coord_cartesian(xlim = c(3, 84)) +
+  labs(y = "Genetic distance (1 - IBS)") +
+  theme_classic()
+
+cloneDend = cloneDendA + theme(
+  axis.title.x = element_blank(),
+  axis.text.x = element_blank(),
+  axis.line.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.title.y = element_text(size = 12, color = "black", angle = 90),
+  axis.text.y = element_text(size = 10, color = "black"),
+  axis.line.y = element_line(),
+  axis.ticks.y = element_line(),
+  panel.grid = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  plot.background = element_blank(),
+  legend.key = element_blank(),
+  legend.title = element_text(size = 12),
+  legend.text = element_text(size = 10),
+  legend.position = c(.5, .12)
+  )
+
+cloneDend
+
+ggsave("../figures/Figure2.eps", plot = cloneDend, height = 4.75, width = 13, units = "in", dpi = 300)
+ggsave("../figures/Figure2.tiff", plot = cloneDend, height = 4.75, width = 13, units = "in", dpi = 300)
+
 ####----------- Heterozygosity Plot -----------------------------------------------------------------
 cubaHetero = read.csv("Heterozygosity_Values.csv", header = TRUE)
 
@@ -59,8 +107,8 @@ hetPlot
 
 # Plot was edited in illustrator to give texture instead of transparenct to the different bars
 
-ggsave("../figures/heterozygosity_plot.tiff", plot = hetPlot, width = 25, height = 15, units = "cm", dpi = 300)
-ggsave("../figures/heterozygosity_plot.eps", plot = hetPlot, width = 25, height = 15, units = "cm", dpi = 300)
+ggsave("../figures/Figure3.tiff", plot = hetPlot, width = 25, height = 15, units = "cm", dpi = 300)
+ggsave("../figures/Figure3.eps", plot = hetPlot, width = 25, height = 15, units = "cm", dpi = 300)
 
 ####------------------ Cluster Dendrogram No Clones -------------------------------------------------
 ### Microsats -------
@@ -126,8 +174,8 @@ plot_layout(guides = "collect") +
 
 combinedDendro
 
-ggsave("../figures/cubaDendrogram.tiff", plot = combinedDendro, width = 45, height = 16, units = "cm", dpi = 300)
-ggsave("../figures/cubaDendrogram.eps", plot = combinedDendro, width = 45, height = 16, units = "cm", dpi = 300)
+ggsave("../figures/Figure4.tiff", plot = combinedDendro, width = 45, height = 16, units = "cm", dpi = 300)
+ggsave("../figures/Figure4.eps", plot = combinedDendro, width = 45, height = 16, units = "cm", dpi = 300)
 
 ####----------------- Ordination Analyses -----------------------------------------------------------
 ### SNPs ------------
@@ -140,8 +188,9 @@ popData$depth[c(1:2)] = "Mesophotic"
 levels(popData$depth)
 
 colnames(popData) = c("sample","population", "depth") 
-levels(popData$population) = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutias",
-                               "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud" ) 
+levels(popData$population) = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
+                               "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud") 
+
 strata(cubaGenlight) = data.frame(popData)
 setPop(cubaGenlight) = ~population
 
@@ -357,8 +406,8 @@ cubaOrdPlots = (cubaMsatPcoaPlot|cubaMsatPcaPlot)/(cubaSnpPcoaPlot|cubaSnpPcaPlo
 
 cubaOrdPlots
 
-ggsave("../figures/ordPlots.eps", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
-ggsave("../figures/ordPlots.tiff", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
+ggsave("../figures/Figure5.eps", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
+ggsave("../figures/Figure5.tiff", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
 
 ####----------------- AMOVA for SNPs -----------------------------------------------------------
 
@@ -529,8 +578,8 @@ combinedHeatmap = (msHeatmap / snpHeatmap) +
 
 combinedHeatmap
 
-ggsave("../figures/combinedHeatmap.tiff", plot = combinedHeatmap, width = 34, height = 25, units = "cm", dpi = 300)
-ggsave("../figures/combinedHeatmap.eps", plot = combinedHeatmap, width = 34, height = 25, units = "cm", dpi = 300)
+ggsave("../figures/Figure6.tiff", plot = combinedHeatmap, width = 34, height = 25, units = "cm", dpi = 300)
+ggsave("../figures/Figure6.eps", plot = combinedHeatmap, width = 34, height = 25, units = "cm", dpi = 300)
 
 ####----------------- IBD/MantelTest ----------------------------------------------------------------
 ### Calculate Geographic distances ----
@@ -692,7 +741,7 @@ mantelPlots = (msMantel | snpMantel) +
 
 mantelPlots
 
-ggsave("../figures/cubaMantel.tiff", height = 12.5, width = 25, units = "cm", dpi = 300)
+ggsave("../figures/FigureS1.tiff", height = 12.5, width = 25, units = "cm", dpi = 300)
 
 ####----------------- Model Probability Plots -------------------------------------------------------
 strctrHrvstr = read.csv("structureHarvesterOut.csv", header = TRUE)
@@ -796,8 +845,8 @@ modelKPlots = (logKPlot | deltaKPlot)/(bicPlot|cvPlot) +
 
 modelKPlots
 
-ggsave("../figures/modelKPlots.tiff", width = 17, height = 16, units = "cm", dpi = 300)
-ggsave("../figures/modelKPlots.eps", width = 17, height = 16, units = "cm", dpi = 300)
+ggsave("../figures/FigureS2.tiff", width = 17, height = 16, units = "cm", dpi = 300)
+ggsave("../figures/FigureS2.eps", width = 17, height = 16, units = "cm", dpi = 300)
 
 ####----------------- Outlier SNP Analysis ------------------------------------------------------------------
 
@@ -812,24 +861,27 @@ plot_bayescan("trimmed_mc.baye_fst.txt",FDR=0.1,add_text=F,size=0.5,highlight=ou
 
 ####----------------- STRUCTURE/ADMIXTURE Plots -----------------------------------------------------
 ### Microsats -------
-msStructure = read.csv("sortedK2-microsat-structure.csv")
-msStructure$Sample = factor(msStructure$Sample, 
-                             levels = msStructure$Sample[order(msStructure$Cluster2)])
-
-msStrDat = melt(msStructure, id.vars = c("Sample", "Population"), 
+msStr = read.csv("sortedK2-microsat-structure.csv")
+msStr$Sample = factor(msStrSample, 
+                             levels = msStr$Sample[order(msStr$Cluster2)])
+msStr$Order = c(1:nrow(msStr))
+msStrDat = melt(msStr, id.vars = c("Sample", "Population", "Order"), 
                 variable.name = "Ancestry", value.name = "Fraction")
 
 col2 = c("blue", "turquoise")
 
 names(col2) = levels(msStrDat$Ancestry)
 
-msStructureA = ggplot(msStrDat, aes(x = Sample, y = Fraction, fill = Ancestry, order = Sample)) +
+
+msStructureA = ggplot(msStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
   geom_bar(stat = "identity", position = "fill", width = 1, colour = "grey25") +
   facet_grid(~fct_inorder(Population), scales = "free", switch = "x", space = "free") +
   xlab("Population") +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   scale_fill_manual(values = col2) +
+  labs(y = "Ancestry") +
+  coord_cartesian(ylim = c(-.01,1.01), clip = "off") +
   theme_bw()
 
 msStructure = msStructureA + theme(
@@ -841,10 +893,11 @@ msStructure = msStructureA + theme(
   axis.text.x = element_blank(),
   axis.text.y = element_text(size = 12, color = "black"),
   axis.title.x = element_blank(),
-  axis.title.y = element_blank(),
+  axis.title.y = element_text(size = 16, color = "black"),
   axis.ticks.x = element_blank(),
+  axis.ticks.y = element_line(color = "black"),
   strip.background = element_blank(),
-  strip.text = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.1),
+  strip.text = element_blank(),
   legend.key = element_blank(),
   legend.title = element_blank(),
   legend.position = "none"
@@ -853,23 +906,37 @@ msStructure = msStructureA + theme(
 msStructure
 
 ### SNPs ------------
-snpStructure = read.csv("sorted_K2_admixture.csv")
-snpStructure$Sample = factor(snpStructure$Sample, 
-                             levels = snpStructure$Sample[order(snpStructure$Cluster2)])
-snpStrDat = melt(snpStructure, id.vars=c("Sample", "Population"), 
+snpStr = read.csv("sorted_K2_admixture.csv")
+snpStr$Sample = factor(snpStr$Sample, 
+                             levels = snpStr$Sample[order(snpStr$Cluster2)])
+levels(snpStr$Population) = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
+                              "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
+snpStr$Order = c(1:nrow(snpStr))
+
+snpStrDat = melt(snpStr, id.vars=c("Sample", "Population", "Order"), 
             variable.name="Ancestry", value.name="Fraction")
 
 col2 = c("blue", "turquoise")
 
 names(col2) = levels(snpStrDat$Ancestry)
 
-snpAdmixA = ggplot(snpStrDat, aes(x = Sample, y = Fraction, fill = Ancestry, order = Sample)) +
+popAnnoStr = data.frame(x1 = c(0.55, 2.55, 14.55, 17.55, 25.55, 39.55, 51.55, 62.55), 
+                        x2 = c(2.45, 14.45, 17.45, 25.45, 39.45, 51.45, 62.45, 78.45), 
+                        y1 = -0.045, y2 = -0.045, Sample = NA, Ancestry = NA, 
+                        Population = c("Banco de \nSan Antonio", "Guanahacabibes", "Isla de la \nJuventud", 
+                                       "Cayo Jutías", "Cayo Anclitas", "Cayo Sabinal","Chivirico", "Cabo Lucrecia"))
+
+snpAdmixA = ggplot(snpStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
   geom_bar(stat = "identity", position = "fill", width = 1, colour = "grey25") +
+  geom_segment(data = popAnnoStr, aes(x = x1, xend = x2, y = y1, yend = y2, color = Population), size = 3) +
+  geom_text(data = popAnnoStr, aes(x = (x2-.05), y = (y1-.05), label = Population), angle = 75, hjust = 1, vjust = 0, size = 5, lineheight = 0.65) +
   facet_grid(~fct_inorder(Population), scales = "free", switch = "x", space = "free") +
-  xlab("Population") +
+  labs(x = "Population", y = "Ancestry") +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   scale_fill_manual(values = col2) +
+  scale_color_brewer(palette = "Dark2") +
+  coord_cartesian(ylim = c(-.01,1.01), clip = "off") +
   theme_bw()
 
 snpAdmix = snpAdmixA + theme(
@@ -881,11 +948,12 @@ snpAdmix = snpAdmixA + theme(
   panel.border = element_rect(fill = NA, color = "black", size = 2, linetype = "solid"),
   axis.text.x = element_blank(),
   axis.text.y = element_text(size = 12, color = "black"),
-  axis.title.x = element_text(size = 18),
-  axis.title.y = element_blank(),
+  axis.title.x = element_text(size = 16),
+  axis.title.y = element_text(size = 16, color = "black"),
   axis.ticks.x = element_blank(),
+  axis.ticks.y = element_line(color = "black"),
   strip.background = element_rect(color = NA, fill = NA),
-  strip.text = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.1),
+  strip.text = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.1, color = NA),
   legend.key = element_blank(),
   legend.title = element_blank(),
   legend.position = "none"
@@ -900,43 +968,59 @@ combinedAdmix = (msStructure / snpAdmix) +
 
 combinedAdmix
 
-ggsave("../figures/combinedADMIXTURE.tiff", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
-ggsave("../figures/combinedADMIXTURE2.eps", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
+ggsave("../figures/Figure7.tiff", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
+ggsave("../figures/Figure7.eps", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
 
 
 ####----------------- Zoox Plot ---------------------------------------------------------------------
 dfZoox = read.csv("zoox-proportions.csv")
-zDat = melt(dfZoox, id.vars = c("Sample", "Population"), variable.name = "Symbiont", value.name = "Fraction")
+dfZoox$Order = c(1:nrow(dfZoox))
+levels(dfZoox$Population) = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
+                               "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
+
+
+zDat = melt(dfZoox, id.vars = c("Sample", "Population", "Order"), variable.name = "Symbiont", value.name = "Fraction")
 
 col3 = brewer.pal(4, "BrBG")
 names(col3) = levels(zDat$Symbiont)
 
-zooxPlotA = ggplot(zDat, aes(x = Sample, y = Fraction, fill = Symbiont, order = Sample)) +
+popAnnoZoox = data.frame(x1 = c(0.55, 2.55, 14.55, 17.55, 25.55, 39.55, 51.55, 62.55), 
+                           x2 = c(2.45, 14.45, 17.45, 25.45, 39.45, 51.45, 62.45, 78.45), 
+                           y1 = -0.045, y2 = -0.045, Sample = NA, Symbiont = NA, 
+                           Population = c("Banco de \nSan Antonio", "Guanahacabibes", "Isla de la \nJuventud", 
+                                          "Cayo Jutías", "Cayo Anclitas", "Cayo Sabinal","Chivirico", "Cabo Lucrecia"))
+
+zooxPlotA = ggplot(data = zDat, aes(x = Order, y = Fraction, fill = Symbiont)) +
   geom_bar(stat = "identity", position = "fill", width = 1, colour = "grey25") +
-  facet_grid(~fct_inorder(Population), scales = "free", switch = "x", space = "free") +
   xlab("Population") +
   scale_x_discrete(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0), labels = function(x) paste0(x*100, "%")) + 
+  scale_y_continuous(expand = c(0, 0), labels = function(x) paste0(x*100, "%")) +
   scale_fill_manual(values = col3, name = "Symbiodiniaceae genus") +
+  geom_segment(data = popAnnoZoox, aes(x = x1, xend = x2, y = y1, yend = y2, color = Population), size = 3) +
+  scale_color_brewer(palette = "Dark2") +
+  geom_text(data = popAnnoZoox, aes(x = (x2-.05), y = (y1-.05), label = Population), angle = 75, hjust = 1, vjust = 0, size = 5, lineheight = 0.65) +
+  facet_grid(.~fct_inorder(Population), scales = "free", switch = "x", space = "free") +
+  coord_cartesian(ylim = c(-.01,1.01), clip = "off") +
+  guides(color = FALSE) +
   theme_bw()
   
 zooxPlot = zooxPlotA + theme(
   plot.title = element_blank(),
-  panel.grid = element_blank(),
-  panel.background = element_rect(fill = NA, colour = "grey25"),
+  panel.background = element_blank(),
   panel.spacing.x = grid:::unit(0, "lines"),
-  panel.border = element_rect(fill = NA, color = "black", size = 2, linetype = "solid"),
+  panel.border = element_rect(color = "black", size = 2, linetype = "solid"),
   axis.text.x=element_blank(),
   axis.text.y=element_text(size = 12, color = "black"),
-  axis.title.x=element_text(size = 18),
+  axis.title.x=element_text(size = 16),
   axis.title.y = element_blank(),
   axis.ticks.x=element_blank(),
-  strip.background=element_blank(),
-  strip.text=element_text(size = 16, angle = 90, hjust = 1, vjust = 0),
+  axis.ticks.y = element_line(color = "black"),
+  strip.text=element_text(size = 16, angle = 90, hjust = 1, vjust = 0, color = NA),
+  strip.background = element_blank(),
   legend.text = element_text(face = "italic")
 )
 
 zooxPlot
 
-ggsave("../figures/zooxplot.tiff", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
-ggsave("../figures/zooxplot.eps", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
+ggsave("../figures/Figure8.tiff", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
+ggsave("../figures/Figure8.eps", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
