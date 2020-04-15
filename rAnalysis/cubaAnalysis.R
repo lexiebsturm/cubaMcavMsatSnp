@@ -2,6 +2,8 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patchwork", "poppr", 
                "RColorBrewer", "reshape2", "StAMPP", "tidyverse", "vcfR", "vegan", "paletteer", "WGCNA")
 
+setwd("../data")
+
 ####----------- SNPs IBS Dendrogram To Identify Clones-----------------------------------------------
 cloneBams = read.table("sample_list")[,1] # list of bam files
 cloneMa = as.matrix(read.table("trimmed_mc_w_clones.ibsMat"))
@@ -13,6 +15,9 @@ clonePops = cloneMeta$V2
 
 cloneDend = cloneMa %>% as.dist() %>% hclust(.,"ave") %>% as.dendrogram()
 cloneDData = cloneDend %>% dendro_data()
+
+plotPops = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
+             "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud")
 
 # Making the branches hang shorter so we can easily see clonal groups
 cloneDData$segments$yend2 = cloneDData$segments$yend
@@ -39,16 +44,17 @@ for(i in 1:nrow(cloneDData$segments)){
 cloneDendPoints$y = point[!is.na(point)]
 
 head(cloneDendPoints)
+techReps = c("44-1", "44-2", "44-3", "61-1", "61-2", "61-3", "18-1", "18-2", "18-3")
 
 cloneDendA = ggplot() +
   geom_segment(data = segment(cloneDData), aes(x = x, y = y, xend = xend, yend = yend2), size = 0.5) +
   geom_point(data = cloneDendPoints, aes(x = x, y = y, fill = pop), size = 4, shape = 21, stroke = 0.25) +
   geom_hline(yintercept = 0.15, color = "red", lty = 5, size = 0.75) +
-  geom_text(data = subset(cloneDendPoints, subset = label %in% c("44-1", "44-2", "44-3", "61-1", "61-2", "61-3", "18-1", "18-2", "18-3")), aes(x = x, y = (y - .015), label = label), angle = 90) +
-  geom_text(data = subset(cloneDendPoints, subset = !label %in% c("44-1", "44-2", "44-3", "61-1", "61-2", "61-3", "18-1", "18-2", "18-3")), aes(x = x, y = (y - .010), label = label), angle = 90) +
+  geom_text(data = subset(cloneDendPoints, subset = label %in% techReps), aes(x = x, y = (y - .015), label = label), angle = 90) +
+  geom_text(data = subset(cloneDendPoints, subset = !label %in% techReps), aes(x = x, y = (y - .010), label = label), angle = 90) +
   #add astrices before the true clones
   geom_text(data = subset(cloneDendPoints, subset = label %in% c("03", "04", "41", "43")), aes(x = (x + .5), y = (y - .018), label = "*"), angle = 90, size = 6) +
-  scale_fill_brewer(palette = "Dark2", name = "Population") +
+  scale_fill_brewer(palette = "Dark2", name = "Population", labels = plotPops) +
   guides(fill = guide_legend(override.aes = list(size = 4), ncol = 2)) +
   coord_cartesian(xlim = c(3, 84)) +
   labs(y = "Genetic distance (1 - IBS)") +
@@ -87,7 +93,7 @@ hetPlotA = ggplot(cubaHetero, aes(x = Analysis.Type, y = Heterozygosity, fill = 
   scale_y_continuous(expand = c(0, 0)) +
   geom_errorbar(aes(ymin = Heterozygosity-Error, ymax = Heterozygosity+Error), 
                 width = 0.6, position = position_dodge(0.9)) +
-  scale_fill_brewer(palette = "Dark2") +
+  scale_fill_brewer(palette = "Dark2", labels = plotPops) +
   scale_alpha_manual(values = c(1, 0.75), name = "Heterozygosity") +
   labs(x ="Analysis Type", y = "Heterozygosity") +
   guides(fill = guide_legend(order = 1)) +
@@ -129,7 +135,7 @@ msDendPoints$site = msI2P[,2][order.dendrogram(msDend)]
 msDendA = ggplot() + 
   geom_segment(data = segment(msDData), aes(x = x, y = y, xend = xend, yend = yend)) +
   geom_point(data = msDendPoints, aes(x = x, y = y, fill = site), size = 5, shape = 21) +
-  scale_fill_brewer(palette = "Dark2", name = "Population") +
+  scale_fill_brewer(palette = "Dark2", name = "Population", labels = plotPops) +
   theme_dendro()
 
 msDend = msDendA + theme(
@@ -155,7 +161,7 @@ snpDendPoints$site = snpI2P[,2][order.dendrogram(snpDend)]
 snpDendA = ggplot() + 
   geom_segment(data = segment(snpDData), aes(x = x, y = y, xend = xend, yend = yend)) +
   geom_point(data = snpDendPoints, aes(x = x, y = y, fill = site), size = 5, shape = 21) +
-  scale_fill_brewer(palette = "Dark2", name = "Population") +
+  scale_fill_brewer(palette = "Dark2", name = "Population", labels = plotPops) +
   theme_dendro()
 
 snpDend = snpDendA + theme(
@@ -188,8 +194,8 @@ popData$depth[c(1:2)] = "Mesophotic"
 levels(popData$depth)
 
 colnames(popData) = c("sample","population", "depth") 
-levels(popData$population) = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
-                               "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud") 
+# levels(popData$population) = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
+#                                "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud") 
 
 strata(cubaGenlight) = data.frame(popData)
 setPop(cubaGenlight) = ~population
@@ -221,12 +227,11 @@ cubaSnpPcaPlotA = ggplot(snpPca, aes(x = PC1, y = PC2, color = site, fill = site
   geom_point(shape = 19, size = 3) + #individuals
   geom_point(aes(x = mean.x, y = mean.y, shape = depth), size = 4, color = "black") + #centroids
   scale_shape_manual(values = c(24,25), name = "Depth") +
-  scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population") +
-  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population", 
-                     guides(order = 0)) +  
+  scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population", labels = plotPops) +
+  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population") +  
   xlab(paste ("PC 1 (", snpPcVar[1],"%)", sep = "")) +
   ylab(paste ("PC 2 (", snpPcVar[2],"%)", sep = "")) +
-  guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1))+
+  guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1), shape = guide_legend(order = 2), color = FALSE)+
   theme_bw()
 
 cubaSnpPcaPlot = cubaSnpPcaPlotA + 
@@ -277,10 +282,10 @@ cubaSnpPcoaPlotA = ggplot(cubaSnpPcoa, aes(x = PCo1, y = PCo2, fill = site, shap
   geom_point(size = 4) +
   scale_y_reverse() +
   scale_shape_manual(values = c(24,25), name = "Depth") +
-  scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population") +
+  scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population", labels = plotPops) +
   xlab(paste ("PCo 1 (", cubaSnpPcoaVar[1],"%)", sep = "")) +
   ylab(paste ("PCo 2 (", cubaSnpPcoaVar[2],"%)", sep = "")) +
-  guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1))+
+  guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1), shape = guide_legend(order = 2), color = FALSE)+
   theme_bw()
 
 cubaSnpPcoaPlot = cubaSnpPcoaPlotA + 
@@ -292,9 +297,8 @@ cubaSnpPcoaPlot = cubaSnpPcoaPlotA +
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank(),
-        legend.position = "left",
-        legend.title = element_text(color = "black", size = 10),
-        legend.text = element_text(color = "black", size = 10),
+        legend.title = element_text(),
+        legend.text = element_text(),
         legend.key = element_blank(),
         panel.border = element_rect(color = "black", size = 1.2),
         panel.background = element_rect(fill = "white"),
@@ -336,12 +340,12 @@ cubaMsatPcaPlotA = ggplot(mSatPca, aes(x, y, color = site, fill = site)) +
   geom_point(aes(x = PC1, y = PC2), shape = 19, size = 3) + #individuals
   geom_point(aes(x = mean.x, y = mean.y, shape = depth), size = 4, color = "black") + #centroids
   scale_shape_manual(values = c(24,25), name = "Depth") +
-  scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population") +
-  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population", 
+  scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population", labels = plotPops) +
+  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population", 
                      guides(order = 0)) +
   xlab(paste ("PC 1 (", mSatPcVar[1],"%)", sep = "")) +
   ylab(paste ("PC 2 (", mSatPcVar[2],"%)", sep = "")) +
-  guides(fill = guide_legend(override.aes = list(size = 4, shape = 22, color = NA), order = 1))+
+  guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1), shape = guide_legend(order = 2), color = FALSE)+
   theme_bw()
 
 cubaMsatPcaPlot = cubaMsatPcaPlotA + 
@@ -366,17 +370,18 @@ cubaMsatPcaPlot
 
 ## PCoA -----
 cubaMsatPcoa = read.csv("cubaMsatPcoa.csv", header = TRUE, check.names = FALSE)
+cubaMsatPcoa$depth = factor(cubaMsatPcoa$depth, levels = levels(cubaMsatPcoa$depth)[c(2,1)])
 
 cubaMsatPcoaPlotA = ggplot(cubaMsatPcoa, aes(x = PCo1, y = PCo2, fill = site, shape = depth)) +
   geom_hline(yintercept = 0, color = "gray90", size = 0.5) +
   geom_vline(xintercept = 0, color = "gray90", size = 0.5) + 
   geom_point(size = 4) +
   #scale_y_reverse() +
-  scale_shape_manual(values = c(25,24), name = "Depth") +
-  scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population") +
+  scale_shape_manual(values = c(24,25), name = "Depth") +
+  scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population", labels = plotPops) +
   xlab("PCo 1 (58.0%)") +
   ylab("PCo 2 (14.1%)") +
-  guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA)))+
+  guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1), shape = guide_legend(order = 2), color = FALSE)+
   theme_bw()
 
 cubaMsatPcoaPlot = cubaMsatPcoaPlotA + 
@@ -439,25 +444,24 @@ amovasignif
 # reads in fst matrix
 msFstMa = read.csv("fst-values.csv", head = TRUE)
 
+pops = c("Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", 
+         "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+
 # renames row headers
-names(msFstMa) = c("Pop", "Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", 
-               "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+names(msFstMa) = c("Pop", pops)
 
 # maintains column order as given
 msFstMa$Pop = factor(msFstMa$Pop, levels = unique(msFstMa$Pop))
 levels(msFstMa$Pop)
-levels(msFstMa$Pop) = c("Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", 
-                      "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+levels(msFstMa$Pop) = pops
 msFstMa
 
 # reads in q value matrix
 msQMa = read.csv("fst-q-values.csv")
-names(msQMa) = c("Pop", "Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", 
-             "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+names(msQMa) = c("Pop", pops)
 msQMa$Pop = factor(msQMa$Pop, levels=unique(msQMa$Pop))
 levels(msQMa$Pop)
-levels(msQMa$Pop) = c("Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", 
-                      "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+levels(msQMa$Pop) = pops
 msQMa
 
 # melts fst and q value matrices into table used by ggplot2
@@ -512,21 +516,20 @@ msHeatmap
 # reads in fst matrix
 snpFstMa = read.csv("cubaFST.csv", head = TRUE)
 
-names(snpFstMa) = c("Pop", "Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", 
-             "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+names(snpFstMa) = c("Pop", pops)
 
 snpFstMa$Pop = factor(snpFstMa$Pop, levels = unique(snpFstMa$Pop))
 levels(snpFstMa$Pop)
-levels(snpFstMa$Pop) = c("Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+levels(snpFstMa$Pop) = pops
 
 snpFstMa
 
 snpQMa = read.csv("cubaq-values.csv")
-names(snpQMa)=c("Pop", "Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", 
-           "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+names(snpQMa)=c("Pop", pops)
+  
 snpQMa$Pop = factor(snpQMa$Pop, levels=unique(snpQMa$Pop))
 levels(snpQMa$Pop)
-levels(snpQMa$Pop) = c("Banco de San Antonio", "Guanahacabibes", "Isla de la Juventud", "Cayo Anclitas", "Chivirico", "Cabo Lucrecia", "Cayo Sabinal", "Cayo Jutías")
+levels(snpQMa$Pop) = pops
 
 snpQMa
 
@@ -657,7 +660,7 @@ colnames(msMantelDF) = c("nei", "geo")
 
 # Plot IBD
 msMantelA = ggplot(data = msMantelDF, aes(x = geo, y = nei)) +
-  scale_fill_gradientn(colors = wes_palette("Zissou1")) +
+  scale_fill_gradientn(colors = paletteer_d("wesanderson::Zissou1")) +
   stat_density_2d(aes(fill = stat(density)), n = 300, contour = FALSE, geom = "raster") +
   geom_smooth(method = lm, col = "black", fill = "gray40", fullrange = TRUE) +
   geom_point(shape = 21, fill = "gray40") +
@@ -705,7 +708,7 @@ snpMantelDF = data.frame(cbind(snpNei$nei, geo$geo))
 colnames(snpMantelDF) = c("nei", "geo")
 
 snpMantelA = ggplot(data = snpMantelDF, aes(x = geo, y = nei)) +
-  scale_fill_gradientn(colors = wes_palette("Zissou1")) +
+  scale_fill_gradientn(colors = paletteer_d("wesanderson::Zissou1")) +
   stat_density_2d(aes(fill = stat(density)), n = 300, contour = FALSE, geom = "raster") +
   geom_smooth(method = lm, col = "black", fill = "gray40", fullrange = TRUE) +
   geom_point(shape = 21, fill = "gray40") +
@@ -862,15 +865,15 @@ plot_bayescan("trimmed_mc.baye_fst.txt",FDR=0.1,add_text=F,size=0.5,highlight=ou
 ####----------------- STRUCTURE/ADMIXTURE Plots -----------------------------------------------------
 ### Microsats -------
 msStr = read.csv("sortedK2-microsat-structure.csv")
-msStr$Sample = factor(msStrSample, 
+msStr$Sample = factor(msStr$Sample, 
                              levels = msStr$Sample[order(msStr$Cluster2)])
 msStr$Order = c(1:nrow(msStr))
 msStrDat = melt(msStr, id.vars = c("Sample", "Population", "Order"), 
                 variable.name = "Ancestry", value.name = "Fraction")
 
-col2 = c("blue", "turquoise")
+colPalStr = c("blue", "turquoise")
 
-names(col2) = levels(msStrDat$Ancestry)
+names(colPalStr) = levels(msStrDat$Ancestry)
 
 
 msStructureA = ggplot(msStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
@@ -879,7 +882,7 @@ msStructureA = ggplot(msStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
   xlab("Population") +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  scale_fill_manual(values = col2) +
+  scale_fill_manual(values = colPalStr) +
   labs(y = "Ancestry") +
   coord_cartesian(ylim = c(-.01,1.01), clip = "off") +
   theme_bw()
@@ -916,10 +919,6 @@ snpStr$Order = c(1:nrow(snpStr))
 snpStrDat = melt(snpStr, id.vars=c("Sample", "Population", "Order"), 
             variable.name="Ancestry", value.name="Fraction")
 
-col2 = c("blue", "turquoise")
-
-names(col2) = levels(snpStrDat$Ancestry)
-
 popAnnoStr = data.frame(x1 = c(0.55, 2.55, 14.55, 17.55, 25.55, 39.55, 51.55, 62.55), 
                         x2 = c(2.45, 14.45, 17.45, 25.45, 39.45, 51.45, 62.45, 78.45), 
                         y1 = -0.045, y2 = -0.045, Sample = NA, Ancestry = NA, 
@@ -934,7 +933,7 @@ snpAdmixA = ggplot(snpStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
   labs(x = "Population", y = "Ancestry") +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  scale_fill_manual(values = col2) +
+  scale_fill_manual(values = colPalStr) +
   scale_color_brewer(palette = "Dark2") +
   coord_cartesian(ylim = c(-.01,1.01), clip = "off") +
   theme_bw()
@@ -975,28 +974,29 @@ ggsave("../figures/Figure7.eps", plot = combinedAdmix, width = 30, height = 20, 
 ####----------------- Zoox Plot ---------------------------------------------------------------------
 dfZoox = read.csv("zoox-proportions.csv")
 dfZoox$Order = c(1:nrow(dfZoox))
-levels(dfZoox$Population) = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
-                               "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
 
+strPops = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
+            "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
+
+levels(dfZoox$Population) = strPops
 
 zDat = melt(dfZoox, id.vars = c("Sample", "Population", "Order"), variable.name = "Symbiont", value.name = "Fraction")
 
-col3 = brewer.pal(4, "BrBG")
-names(col3) = levels(zDat$Symbiont)
+colPalZoox = brewer.pal(4, "BrBG")
+names(colPalZoox) = levels(zDat$Symbiont)
 
-popAnnoZoox = data.frame(x1 = c(0.55, 2.55, 14.55, 17.55, 25.55, 39.55, 51.55, 62.55), 
-                           x2 = c(2.45, 14.45, 17.45, 25.45, 39.45, 51.45, 62.45, 78.45), 
-                           y1 = -0.045, y2 = -0.045, Sample = NA, Symbiont = NA, 
-                           Population = c("Banco de \nSan Antonio", "Guanahacabibes", "Isla de la \nJuventud", 
-                                          "Cayo Jutías", "Cayo Anclitas", "Cayo Sabinal","Chivirico", "Cabo Lucrecia"))
+popAnnoZoox = data.frame(x1 = c(0.55, 62.55, 25.55, 17.55, 39.55, 51.55, 2.55, 14.55),
+                         x2 = c(2.45, 78.45, 39.45, 25.45, 51.45, 62.45, 14.45, 17.45), 
+                         y1 = -0.045, y2 = -0.045, Sample = NA, Symbiont = NA, Order = NA,
+                           Population = strPops)
 
-zooxPlotA = ggplot(data = zDat, aes(x = Order, y = Fraction, fill = Symbiont)) +
+zooxPlotA = ggplot(data = zDat, aes(x = Order, y = Fraction, fill = Symbiont, order = Order)) +
   geom_bar(stat = "identity", position = "fill", width = 1, colour = "grey25") +
   xlab("Population") +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0), labels = function(x) paste0(x*100, "%")) +
-  scale_fill_manual(values = col3, name = "Symbiodiniaceae genus") +
-  geom_segment(data = popAnnoZoox, aes(x = x1, xend = x2, y = y1, yend = y2, color = Population), size = 3) +
+  scale_fill_manual(values = colPalZoox, name = "Symbiodiniaceae genus") +
+  geom_segment(data = popAnnoZoox, aes(x = x1, xend = x2, y = y1, yend = y2, color = strPops), size = 3) +
   scale_color_brewer(palette = "Dark2") +
   geom_text(data = popAnnoZoox, aes(x = (x2-.05), y = (y1-.05), label = Population), angle = 75, hjust = 1, vjust = 0, size = 5, lineheight = 0.65) +
   facet_grid(.~fct_inorder(Population), scales = "free", switch = "x", space = "free") +
