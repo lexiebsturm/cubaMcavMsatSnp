@@ -1,8 +1,6 @@
 .Rproj.user
-.Rhistory
+*.Rhistory
 .RData
 .Ruserdata
-rAnalysis/.Rhistory
-figures/.DS_Store
-.DS_Store
-.DS_Store
+*.DS_Store
+
