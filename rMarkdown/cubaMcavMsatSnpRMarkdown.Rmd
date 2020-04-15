@@ -25,7 +25,7 @@ Code to produce these figures was generated with help from Ryan Eckert, if you t
 #Basic setup of R environment
 ***
 ```{r, setup1, include = FALSE}
-knitr::opts_chunk$set(warning = FALSE, fig.align = 'left', fig.dim = c(4,4))
+knitr::opts_chunk$set(warning = FALSE, fig.align = 'left')
 # If we wanted to use real data housed in a folder at the same directory level as our present working directory (i.e. "code/") we could use the following to set the directory to the "data" directory. Two periods(..) means the containing directory. So below we are saying our ne working directory is the "data" folder in the folder which also contains the "code" folder.
 
 knitr::opts_knit$set(root.dir = '../rAnalysis')
