@@ -692,7 +692,7 @@ msStructure
 ```
 
 ###SNP ADMIXTURE plot
-```{r, snpAdmixture, fig.dim = c(16,4)}
+```{r, snpAdmixture, fig.dim = c(16,6)}
 snpStr = read.csv("sorted_K2_admixture.csv")
 snpStr$Sample = factor(snpStr$Sample, levels = snpStr$Sample[order(snpStr$Cluster2)])
 levels(snpStr$Population) = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías", "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
@@ -745,7 +745,7 @@ snpAdmix
 ```
 
 ###Combine all the plots together with *patchwork*
-```{r, structureAdmixtureCombined, fig.dim = c(16,8)}
+```{r, structureAdmixtureCombined, fig.dim = c(16,10)}
 combinedAdmix = (msStructure / snpAdmix) +
   plot_annotation(tag_level = "a") &
   theme(plot.tag = element_text(size = 18, face = "bold"))
@@ -755,3 +755,57 @@ combinedAdmix
 ggsave("../rMarkdown/Figure7.tiff", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
 ggsave("../rMarkdown/Figure7.eps", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
 ```
+
+##Figure 8: Algal Symbiont Proxy Assemblages
+```{r, zooxPlot, fig.dim = c(16,4)}
+dfZoox = read.csv("zoox-proportions.csv")
+dfZoox$Order = c(1:nrow(dfZoox))
+levels(dfZoox$Population) = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías", "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
+
+
+zDat = melt(dfZoox, id.vars = c("Sample", "Population", "Order"), variable.name = "Symbiont", value.name = "Fraction")
+
+col3 = brewer.pal(4, "BrBG")
+names(col3) = levels(zDat$Symbiont)
+
+popAnnoZoox = data.frame(x1 = c(0.55, 2.55, 14.55, 17.55, 25.55, 39.55, 51.55, 62.55), 
+                           x2 = c(2.45, 14.45, 17.45, 25.45, 39.45, 51.45, 62.45, 78.45), 
+                           y1 = -0.045, y2 = -0.045, Sample = NA, Symbiont = NA, 
+                           Population = c("Banco de \nSan Antonio", "Guanahacabibes", "Isla de la \nJuventud", 
+                                          "Cayo Jutías", "Cayo Anclitas", "Cayo Sabinal","Chivirico", "Cabo Lucrecia"))
+
+zooxPlotA = ggplot(data = zDat, aes(x = Order, y = Fraction, fill = Symbiont)) +
+  geom_bar(stat = "identity", position = "fill", width = 1, colour = "grey25") +
+  xlab("Population") +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0), labels = function(x) paste0(x*100, "%")) +
+  scale_fill_manual(values = col3, name = "Symbiodiniaceae genus") +
+  geom_segment(data = popAnnoZoox, aes(x = x1, xend = x2, y = y1, yend = y2, color = Population), size = 3) +
+  scale_color_brewer(palette = "Dark2") +
+  geom_text(data = popAnnoZoox, aes(x = (x2-.05), y = (y1-.05), label = Population), angle = 75, hjust = 1, vjust = 0, size = 5, lineheight = 0.65) +
+  facet_grid(.~fct_inorder(Population), scales = "free", switch = "x", space = "free") +
+  coord_cartesian(ylim = c(-.01,1.01), clip = "off") +
+  guides(color = FALSE) +
+  theme_bw()
+  
+zooxPlot = zooxPlotA + theme(
+  plot.title = element_blank(),
+  panel.background = element_blank(),
+  panel.spacing.x = grid:::unit(0, "lines"),
+  panel.border = element_rect(color = "black", size = 2, linetype = "solid"),
+  axis.text.x=element_blank(),
+  axis.text.y=element_text(size = 12, color = "black"),
+  axis.title.x=element_text(size = 16),
+  axis.title.y = element_blank(),
+  axis.ticks.x=element_blank(),
+  axis.ticks.y = element_line(color = "black"),
+  strip.text=element_text(size = 16, angle = 90, hjust = 1, vjust = 0, color = NA),
+  strip.background = element_blank(),
+  legend.text = element_text(face = "italic"))
+
+zooxPlot
+
+ggsave("../rMarkdown/Figure8.tiff", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
+ggsave("../rMarkdown/Figure8.eps", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
+```
+
