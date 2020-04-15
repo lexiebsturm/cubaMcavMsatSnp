@@ -1,3 +1,4 @@
+library(pacman)
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patchwork", "poppr", 
                "RColorBrewer", "reshape2", "StAMPP", "tidyverse", "vcfR", "vegan", "paletteer", "WGCNA")
