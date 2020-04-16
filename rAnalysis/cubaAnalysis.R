@@ -1,4 +1,3 @@
-library(pacman)
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patchwork", "poppr", 
                "RColorBrewer", "reshape2", "StAMPP", "tidyverse", "vcfR", "vegan", "paletteer", "WGCNA")
@@ -22,10 +21,10 @@ plotPops = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jut
 
 # Making the branches hang shorter so we can easily see clonal groups
 cloneDData$segments$yend2 = cloneDData$segments$yend
-for(i in 1:nrow(cloneDData$segments)){
-  if(cloneDData$segments$yend2[i] == 0){
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend2[i] == 0) {
     cloneDData$segments$yend2[i] = (cloneDData$segments$y[i] - 0.03)
-    }
+  }
 }
 
 cloneDendPoints = cloneDData$labels
@@ -34,12 +33,12 @@ rownames(cloneDendPoints) = cloneDendPoints$label
 
 # Making points at the leaves to place symbols for populations
 point = as.vector(NA)
-for(i in 1:nrow(cloneDData$segments)){
-  if(cloneDData$segments$yend[i] == 0){
+for(i in 1:nrow(cloneDData$segments)) {
+  if (cloneDData$segments$yend[i] == 0) {
     point[i] = cloneDData$segments$y[i] - 0.03
   } else {
     point[i] = NA
-    }
+  }
 }
 
 cloneDendPoints$y = point[!is.na(point)]
@@ -195,8 +194,6 @@ popData$depth[c(1:2)] = "Mesophotic"
 levels(popData$depth)
 
 colnames(popData) = c("sample","population", "depth") 
-# levels(popData$population) = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
-#                                "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud") 
 
 strata(cubaGenlight) = data.frame(popData)
 setPop(cubaGenlight) = ~population
@@ -224,12 +221,12 @@ snpPca = merge(snpPca, aggregate(cbind(mean.x=PC1,mean.y=PC2)~site,snpPca, mean)
 cubaSnpPcaPlotA = ggplot(snpPca, aes(x = PC1, y = PC2, color = site, fill = site, shape = depth)) +
   geom_hline(yintercept = 0, color = "gray90", size = 0.5) +
   geom_vline(xintercept = 0, color = "gray90", size = 0.5) + 
-  geom_segment(aes(x = mean.x, y = mean.y, xend = PC1, yend = PC2)) + #spider
-  geom_point(shape = 19, size = 3) + #individuals
-  geom_point(aes(x = mean.x, y = mean.y, shape = depth), size = 4, color = "black") + #centroids
+  geom_segment(aes(x = mean.x, y = mean.y, xend = PC1, yend = PC2)) + # spider
+  geom_point(shape = 19, size = 3) + # individuals
+  geom_point(aes(x = mean.x, y = mean.y, shape = depth), size = 4, color = "black") + # centroids
   scale_shape_manual(values = c(24,25), name = "Depth") +
   scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population", labels = plotPops) +
-  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population") +  
+  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = "Population", labels = plotPops) +  
   xlab(paste ("PC 1 (", snpPcVar[1],"%)", sep = "")) +
   ylab(paste ("PC 2 (", snpPcVar[2],"%)", sep = "")) +
   guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1), shape = guide_legend(order = 2), color = FALSE)+
@@ -426,8 +423,8 @@ popData$depth[c(1:2)] = "Mesophotic"
 levels(popData$depth)
 
 colnames(popData) = c("sample","population", "depth") 
-levels(popData$population) = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutias",
-                               "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud" ) 
+levels(popData$population) = plotPops
+
 strata(cubaGenlight) = data.frame(popData)
 setPop(cubaGenlight) = ~population
 
@@ -913,18 +910,19 @@ msStructure
 snpStr = read.csv("sorted_K2_admixture.csv")
 snpStr$Sample = factor(snpStr$Sample, 
                              levels = snpStr$Sample[order(snpStr$Cluster2)])
-levels(snpStr$Population) = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
-                              "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
+strPops = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
+            "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
+
+levels(snpStr$Population) = strPops
 snpStr$Order = c(1:nrow(snpStr))
 
 snpStrDat = melt(snpStr, id.vars=c("Sample", "Population", "Order"), 
             variable.name="Ancestry", value.name="Fraction")
 
-popAnnoStr = data.frame(x1 = c(0.55, 2.55, 14.55, 17.55, 25.55, 39.55, 51.55, 62.55), 
-                        x2 = c(2.45, 14.45, 17.45, 25.45, 39.45, 51.45, 62.45, 78.45), 
+popAnnoStr = data.frame(x1 = c(0.55, 62.55, 25.55, 17.55, 39.55, 51.55, 2.55, 14.55),
+                        x2 = c(2.45, 78.45, 39.45, 25.45, 51.45, 62.45, 14.45, 17.45),
                         y1 = -0.045, y2 = -0.045, Sample = NA, Ancestry = NA, 
-                        Population = c("Banco de \nSan Antonio", "Guanahacabibes", "Isla de la \nJuventud", 
-                                       "Cayo Jutías", "Cayo Anclitas", "Cayo Sabinal","Chivirico", "Cabo Lucrecia"))
+                        Population = strPops)
 
 snpAdmixA = ggplot(snpStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
   geom_bar(stat = "identity", position = "fill", width = 1, colour = "grey25") +
@@ -975,9 +973,6 @@ ggsave("../figures/Figure7.eps", plot = combinedAdmix, width = 30, height = 20, 
 ####----------------- Zoox Plot ---------------------------------------------------------------------
 dfZoox = read.csv("zoox-proportions.csv")
 dfZoox$Order = c(1:nrow(dfZoox))
-
-strPops = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
-            "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
 
 levels(dfZoox$Population) = strPops
 
