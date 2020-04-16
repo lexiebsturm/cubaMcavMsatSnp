@@ -1,7 +1,7 @@
 ---
-title: "Cuba Montastraea cavernosa Microsatellite and SNP Analyses and Figures in R"
-author: "Alexis Sturm"
-date: "4/14/2020"
+title: "Population genetic structure of *Montastraea cavernosa* using microsatellite and SNP markers: Analyses and Figures in R"
+author: "Alexis Sturm -- lexie.sturm@gmail.com and Ryan Eckert"
+date: "4/16/2020"
 output:
   html_document:
     theme: flatly
@@ -19,9 +19,10 @@ options(width = 88)
 ***
 
 # About this document
+#### version: `r Sys.Date() %>% format(format="%B %d, %Y")`
 ***  
 All analyses were performed in R version 3.6.2. 
-This is the code that accompanies the publication XXX. Here you will find all the code to repeat the statistical analyses performed in R and figures created for the manuscript. The accompanying library preparation protocol and bioinformatic walkthrough can be found by clicking on the links.
+This is the code that accompanies the publication XXX. Here you will find all the code to repeat the statistical analyses performed in R and the figures created for the manuscript. The accompanying library preparation protocol and bioinformatic walkthrough can be found by clicking on the links.
 
 Code to produce these figures was generated with help from [Ryan Eckert](https://ryanjeckert.weebly.com){target="_blank"}, if you think this walkthrough is helpful check out similar ones for Symbiodiniaceae *ITS2* analyses [here](https://RyanEckert.github.io/Belize_Mcav_Symbiodiniaceae_ITS2/stats){target="_blank"}.  
 
@@ -141,7 +142,7 @@ ggsave("../rMarkdown/Figure2.tiff", plot = cloneDend, height = 4.75, width = 13,
 ```
 
 ## Figure 3: Heterozygosity plot
-Observed and expected heterozygosity values were calculated for microsatellites in GenAlEx and for SNPs using the *populations* function in the popular RADseq analysis program, *STACKS*. These values and their standard error's are incorporated in the "Heterozygosity_Values.csv" file.
+Observed and expected heterozygosity values were calculated for microsatellites in [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"} and for SNPs using the *populations* function in the popular RADseq analysis program, [*STACKS*](http://catchenlab.life.illinois.edu/stacks/manual/){target="_blank"}. These values and their standard error's are incorporated in the "Heterozygosity_Values.csv" file.
 
 ```{r, Heterozygosity plot, fig.dim = c(7, 4)}
 cubaHetero = read.csv("Heterozygosity_Values.csv", header = TRUE)
@@ -179,7 +180,7 @@ ggsave("../rMarkdown/Figure3.eps", plot = hetPlot, width = 25, height = 15, unit
 
 ## Figure 4: Cluster dendrogram without clones
 ### Microsatellites
-The program *poppr* can read in microsatallite multi-locus genotypes exported from GenAlEx as .csv files and can calculate a variety of distance metrics from this data. For microsatellite data with some missing loci, they recommend using Prevosti's distance.
+The program [*poppr*](https://grunwaldlab.github.io/Population_Genetics_in_R/) can read in microsatallite multi-locus genotypes exported from [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"} as .csv files and can calculate a variety of distance metrics from this data. For microsatellite data with some missing loci, they recommend using Prevosti's distance.
 
 ```{r, Msat cluster dendrogram, fig.dim = c(17.7, 3.15)}
 genAlEx = read.genalex("cuba_trimmed_microsats_genalex.csv")
@@ -487,7 +488,7 @@ ggsave("../rMarkdown/Figure5.tiff", plot = cubaOrdPlots, height = 20, width = 25
 ```
 
 ## Calculating AMOVA from SNP data
-Taking a break from making figures, here is how AMOVA and significance was calculated from the SNP dataset using *poppr*.The AMOVA for microsatellites was run in GenAlEx.
+Taking a break from making figures, here is how AMOVA and significance was calculated from the SNP dataset using *[*poppr*](https://grunwaldlab.github.io/Population_Genetics_in_R/)*.The AMOVA for microsatellites was run in [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"}.
 ```{r, AMOVA vcf, results='hide'}
 cubaVcf = read.vcfR("trimmed_mc_renamed.vcf.gz") #Read in vcf
 cubaGenlight = vcfR2genlight(cubaVcf, n.cores = 2) #Convert to genlight
@@ -519,7 +520,7 @@ amovasignif
 
 ## Figure 6: Pairwise Fst Heat Maps
 ### Microsatellites
-Pairwise Fst values and associated p-values were calculated in GenAlEx and read in as matrices in csv files.
+Pairwise Fst values and associated p-values were calculated in [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"} and read in as matrices in csv files.
 ```{r, Fstmicrosat, fig.dim = c(13.4, 4.9)}
 # reads in fst matrix
 msFstMa = read.csv("fst-values.csv", head = TRUE)
