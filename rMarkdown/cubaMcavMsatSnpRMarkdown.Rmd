@@ -1,6 +1,6 @@
 ---
 title: "Population genetic structure of *Montastraea cavernosa* using microsatellite and SNP markers: Analyses and Figures in R"
-author: "Alexis Sturm -- lexie.sturm@gmail.com and Ryan Eckert"
+author: "Alexis Sturm -- lexie.sturm@gmail.com and Ryan Eckert-- ryan.j.eckert@gmail.com"
 date: "4/16/2020"
 output:
   html_document:
@@ -24,7 +24,9 @@ options(width = 88)
 All analyses were performed in R version 3.6.2. 
 This is the code that accompanies the publication XXX. Here you will find all the code to repeat the statistical analyses performed in R and the figures created for the manuscript. The accompanying library preparation protocol and bioinformatic walkthrough can be found by clicking on the links.
 
-Code to produce these figures was generated with help from [Ryan Eckert](https://ryanjeckert.weebly.com){target="_blank"}, if you think this walkthrough is helpful check out similar ones for Symbiodiniaceae *ITS2* analyses [here](https://RyanEckert.github.io/Belize_Mcav_Symbiodiniaceae_ITS2/stats){target="_blank"}.  
+Code to produce these figures was generated with help from [Ryan Eckert](https://ryanjeckert.weebly.com){target="_blank"}, if you think this walkthrough is helpful check out similar ones for Symbiodiniaceae *ITS2* analyses [here](https://RyanEckert.github.io/Belize_Mcav_Symbiodiniaceae_ITS2/stats){target="_blank"}. 
+
+If you have any issues or questions about the code please feel free to send an email to lexie.sturm@gmail.com.
 
 ***
 
@@ -65,7 +67,7 @@ kable(gpsCoords, col.names = (c("Sampling Site","Sampling Date", "Depth Range (m
 ```
 
 ## Figure 2: IBS dendrogram with clones
-The following chunk of code uses the IBS matrix generated from ANGSD to produce an Identity-By-State Dendrogram which we can use to ensure that technical replicates are clustering together and to identify natural clones from the SNP dataset.
+The following chunk of code uses the IBS matrix generated from [ANGSD](https://github.com/ANGSD/angsd){target="_blank"} to produce an Identity-By-State Dendrogram which we can use to ensure that technical replicates are clustering together and to identify natural clones from the SNP dataset.
 
 ```{r, SNP IBS Dendrogram With Clones, fig.dim = c(13, 4.75)}
 cloneBams = read.table("sample_list")[,1] # list of bam files
@@ -86,9 +88,7 @@ plotPops = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jut
 cloneDData$segments$yend2 = cloneDData$segments$yend
 for(i in 1:nrow(cloneDData$segments)) {
   if (cloneDData$segments$yend2[i] == 0) {
-    cloneDData$segments$yend2[i] = (cloneDData$segments$y[i] - 0.03)
-  }
-}
+    cloneDData$segments$yend2[i] = (cloneDData$segments$y[i] - 0.03)}}
 
 cloneDendPoints = cloneDData$labels
 cloneDendPoints$pop = clonePops[order.dendrogram(cloneDend)]
@@ -100,9 +100,7 @@ for(i in 1:nrow(cloneDData$segments)) {
   if (cloneDData$segments$yend[i] == 0) {
     point[i] = cloneDData$segments$y[i] - 0.03
   } else {
-    point[i] = NA
-  }
-}
+    point[i] = NA}}
 
 cloneDendPoints$y = point[!is.na(point)]
 
@@ -138,8 +136,7 @@ cloneDend = cloneDendA + theme(
   legend.key = element_blank(),
   legend.title = element_text(size = 12),
   legend.text = element_text(size = 10),
-  legend.position = c(.5, .12)
-  )
+  legend.position = c(.5, .12))
 
 cloneDend
 ```
@@ -192,7 +189,7 @@ ggsave("../rMarkdown/Figure3.eps", plot = hetPlot, width = 25, height = 15, unit
 
 ## Figure 4: Cluster dendrogram without clones
 ### Microsatellites
-The program [*poppr*](https://grunwaldlab.github.io/Population_Genetics_in_R/) can read in microsatallite multi-locus genotypes exported from [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"} as .csv files and can calculate a variety of distance metrics from this data. For microsatellite data with some missing loci, they recommend using Prevosti's distance.
+The program [*poppr*](https://grunwaldlab.github.io/Population_Genetics_in_R/){target="_blank"} can read in microsatallite multi-locus genotypes exported from [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"} as .csv files and can calculate a variety of distance metrics from this data. For microsatellite data with some missing loci, they recommend using Prevosti's distance.
 
 ```{r, Msat cluster dendrogram, fig.dim = c(17.7, 3.15)}
 genAlEx = read.genalex("cuba_trimmed_microsats_genalex.csv")
@@ -253,8 +250,10 @@ snpDend = snpDendA + theme(
 snpDend
 ```
 
-### Combine and save the plots
-These plots were combined using the program *patchwork*
+### Combine all the plots together with *patchwork*
+[*patchwork*](https://github.com/thomasp85/patchwork){target="_blank"} is a really easy program to combine ggplot figures, collapse legends, and add letter annotations to the plots. 
+
+Please note that for all of these figures, figures generated from the microsatellite dataset will be labeled **a** and those generated from the SNP dataset will be labeled **b**.
 ```{r, combines cluster dendrogram, fig.dim = c(17.7, 6.3)}
 combinedDendro = (msDend / snpDend) +
 plot_layout(guides = "collect") + # collapses the legends into one
@@ -271,7 +270,7 @@ ggsave("../rMarkdown/Figure4.eps", plot = combinedDendro, width = 45, height = 1
 
 ### SNPs
 ```{r, vcf2genlight}
-cubaVcf = read.vcfR("trimmed_mc_renamed.vcf.gz") #T his vcf file has all of your SNP genotype likelihoods and is generated by ANGSD
+cubaVcf = read.vcfR("trimmed_mc_renamed.vcf.gz") #This vcf file has all of your SNP genotype likelihoods and is generated by ANGSD
 cubaGenlight = vcfR2genlight(cubaVcf, n.cores = 2) # Converts the vcf file into a file format that poppr uses the "genlight" format
 locNames(cubaGenlight) = paste(cubaVcf@fix[,1],cubaVcf@fix[,2],sep="_") 
 popData = read.table("vcf_popmap") # Reads in population data for each sample
@@ -500,7 +499,7 @@ ggsave("../rMarkdown/Figure5.tiff", plot = cubaOrdPlots, height = 20, width = 25
 ```
 
 ## Calculating AMOVA from SNP data
-Taking a break from making figures, here is how AMOVA and significance was calculated from the SNP dataset using *[*poppr*](https://grunwaldlab.github.io/Population_Genetics_in_R/)*.The AMOVA for microsatellites was run in [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"}.
+Taking a break from making figures, here is how AMOVA and significance was calculated from the SNP dataset using *[*poppr*](https://grunwaldlab.github.io/Population_Genetics_in_R/){target="_blank"}*. The AMOVA for microsatellites was run in [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"}.
 ```{r, AMOVA vcf, results='hide'}
 cubaVcf = read.vcfR("trimmed_mc_renamed.vcf.gz") #Read in vcf
 cubaGenlight = vcfR2genlight(cubaVcf, n.cores = 2) #Convert to genlight
@@ -522,7 +521,7 @@ cubaGenlight
 amova <- poppr.amova(cubaGenlight, ~population) #Runs AMOVA
 amova
 ```
-Partitions amount of variance at each level: Among populations, among individuals within a population, and within an individual.
+Partitions amount of variance at each level: among populations, among individuals within a population, and within an individual.
 
 ```{r, AMOVA significance}
 set.seed(1999)
@@ -717,8 +716,7 @@ msStructure = msStructureA + theme(
   strip.text = element_blank(),
   legend.key = element_blank(),
   legend.title = element_blank(),
-  legend.position = "none"
-)
+  legend.position = "none")
 
 msStructure
 ```
@@ -772,8 +770,7 @@ snpAdmix = snpAdmixA + theme(
   strip.text = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.1, color = NA),
   legend.key = element_blank(),
   legend.title = element_blank(),
-  legend.position = "none"
-)
+  legend.position = "none")
 
 snpAdmix
 ```
@@ -790,13 +787,12 @@ ggsave("../rMarkdown/Figure7.tiff", plot = combinedAdmix, width = 30, height = 2
 ggsave("../rMarkdown/Figure7.eps", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
 ```
 
-## Figure 8: Algal Symbiont Proxy Assemblages
+## Figure 8: Algal symbiont proxy assemblages
 ```{r, zooxPlot, fig.dim = c(13.5, 4.9)}
 dfZoox = read.csv("zoox-proportions.csv")
 dfZoox$Order = c(1:nrow(dfZoox))
 
-strPops = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
-            "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
+strPops = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías", "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
 
 levels(dfZoox$Population) = strPops
 
@@ -837,8 +833,7 @@ zooxPlot = zooxPlotA + theme(
   axis.ticks.y = element_line(color = "black"),
   strip.text=element_text(size = 16, angle = 90, hjust = 1, vjust = 0, color = NA),
   strip.background = element_blank(),
-  legend.text = element_text(face = "italic")
-)
+  legend.text = element_text(face = "italic"))
 
 zooxPlot
 
@@ -848,7 +843,7 @@ ggsave("../rMarkdown/Figure8.eps", plot = zooxPlot, width = 34.35, height = 12.5
 
 # Supplementary Figures
 
-## Supplementary Figure S1: Mantel Isolation by Distance
+## Supplementary Figure S1: Mantel Isolation-by-Distance
 First we can calculate the geographic distances:
 ```{r, geographic distances}
 
@@ -899,12 +894,11 @@ GeoDistanceInMetresMatrix = function(df.geopoints) {
   # Set the row and column names
   rownames(mat.distances) = df.geopoints$name
   colnames(mat.distances) = df.geopoints$name
-  return(mat.distances)
-}
+  return(mat.distances)}
 ```
 
-### Microsats
-Mantel's test
+### Microsatellites
+####Mantel's test
 ```{r, ms mantel}
 coords = read.csv ("xycoords.csv", header=TRUE) # tab-separated file for all pops
 
@@ -920,7 +914,7 @@ msIBD = mantel.randtest(dGeo, msNeiDistMa)
 msIBD
 ```
 
-Microsat Mantel plot
+####Microsatellite Mantel plot
 ```{r, ms mantel plot, fig.dim = c(4.9, 4.9)}
 msNei =  melt(as.matrix(msNeiDistMa), varnames = c("row", "col"), value.name = "nei")
 msNei = msNei[msNei$row > msNei$col,]
@@ -956,16 +950,14 @@ msMantel = msMantelA + theme(
   axis.line.y = element_blank(),
   panel.border = element_rect(size = 1.2, color = "black"),
   plot.margin = margin(0.2,0.5,0.1,0.1, unit = "cm"),
-  legend.position = "none"
-  )
+  legend.position = "none")
 
 msMantel
 
-### SNPs ------------
 ```
 
 ### SNPs
-Mantel's test
+####Mantel's test
 ```{r, SNP mantel}
 # Isolation by distance
 popdata<-read.table("vcf_popmap")
@@ -980,7 +972,7 @@ snpIBD = mantel.randtest(dGeo,snpNeiDist)
 snpIBD
 ```
 
-SNP Mantel plot
+####SNP Mantel plot
 ```{r, SNP mantel plot, fig.dim = c(4.9, 4.9)}
 snpNei =  melt(as.matrix(snpNeiDist), varnames = c("row", "col"), value.name = "nei")
 snpNei = snpNei[snpNei$row != snpNei$col,]
@@ -1012,8 +1004,7 @@ snpMantel = snpMantelA + theme(
   axis.line.y = element_blank(),
   panel.border = element_rect(size = 1.2, color = "black"),
   plot.margin = margin(0.2,0.5,0.1,0.1, unit = "cm"),
-  legend.position = "none"
-)
+  legend.position = "none")
 
 snpMantel
 ```
@@ -1027,12 +1018,12 @@ mantelPlots = (msMantel | snpMantel) +
 
 mantelPlots
 
-ggsave("../figures/FigureS1.tiff", height = 12.5, width = 25, units = "cm", dpi = 300)
+ggsave("../rMarkdown/FigureS1.tiff", height = 12.5, width = 25, units = "cm", dpi = 300)
 ```
 
-## Supplementary Figure S2: Model Probability Plots
+## Supplementary Figure S2: Model probability plots
 
-### Log Probability of $K$ Plot
+### Log probability of $K$ plot
 ```{r, log K plot, fig.dim = c(4, 4)}
 strctrHrvstr = read.csv("structureHarvesterOut.csv", header = TRUE)
 head(strctrHrvstr)
@@ -1052,13 +1043,12 @@ logKPlot = logKPlotA + theme(
   axis.title.y = element_text(size = 14, color = "black"),
   axis.text= element_text(size = 12, color = "black"),
   axis.line = element_blank(),
-  panel.border = element_rect(size = 1)
-)
+  panel.border = element_rect(size = 1))
 
 logKPlot
 ```
 
-### $\Delta K$ Plot
+### $\Delta K$ plot
 ```{r, deltaK plot, fig.dim = c(4, 4)}
 bestDK = strctrHrvstr[2,]
 
@@ -1075,13 +1065,12 @@ deltaKPlot = deltaKPlotA + theme(
   axis.title.y = element_text(size = 14, color = "black"),
   axis.text= element_text(size = 12, color = "black"),
   axis.line = element_blank(),
-  panel.border = element_rect(size = 1)
-)
+  panel.border = element_rect(size = 1))
 
 deltaKPlot
 ```
 
-### Bayesian Information Criterion plot
+### Bayesian Information Criterion (BIC) plot
 ```{r, BIC plot, fig.dim = c(4, 4)}
 snpBIC = read.csv("BIC_Values.csv", header = TRUE)
 head(snpBIC)
@@ -1101,13 +1090,12 @@ bicPlot = bicPlotA + theme(
   axis.title.y = element_text(size = 14, color = "black"),
   axis.text= element_text(size = 12, color = "black"),
   axis.line = element_blank(),
-  panel.border = element_rect(size = 1)
-)
+  panel.border = element_rect(size = 1))
 
 bicPlot
 ```
 
-### Admiture Cross Validation Plot
+### Admixture cross-validation plot
 ```{r, model cross validation plot, fig.dim = c(4, 4)}
 cvAdmix = read.csv("CV_Values_ADMIXTURE.csv", header =TRUE)
 bestCV = cvAdmix[1,]
@@ -1125,8 +1113,7 @@ cvPlot = cvPlotA + theme(
   axis.title.y = element_text(size = 14, color = "black"),
   axis.text= element_text(size = 12, color = "black"),
   axis.line = element_blank(),
-  panel.border = element_rect(size = 1)
-)
+  panel.border = element_rect(size = 1))
 
 cvPlot
 ```
@@ -1142,6 +1129,6 @@ modelKPlots = (logKPlot | deltaKPlot)/(bicPlot|cvPlot) +
 
 modelKPlots
 
-ggsave("../figures/FigureS2.tiff", width = 17, height = 16, units = "cm", dpi = 300)
-ggsave("../figures/FigureS2.eps", width = 17, height = 16, units = "cm", dpi = 300)
+ggsave("../rMarkdown/FigureS2.tiff", width = 17, height = 16, units = "cm", dpi = 300)
+ggsave("../rMarkdown/FigureS2.eps", width = 17, height = 16, units = "cm", dpi = 300)
 ```
