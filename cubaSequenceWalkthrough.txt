@@ -1,0 +1,596 @@
+#Sign onto koko and make a directory for your project and a sub-directory for the raw reads
+
+koko
+mkdir 2bRAD
+cd 2bRAD
+mkdir cuba
+cd ~/2bRAD/cuba
+mkdir raw_reads
+
+logout
+
+#On your local machine open terminal
+#cd /path/to/directory<-- where your sequencing runs are found
+
+# Now we copy all gzipped files (*.gz) to the HPC
+scp *.gz asturm2017@koko-login.fau.edu:~/2bRAD/cuba/raw_reads/
+
+# ==============================================
+
+#Add modules to bashrc
+cd
+nano .bashrc
+module load gcc
+module load slurm
+module load fastx_toolkit/0.0.14
+module load popgentools-master-gcc-7.3.0-ym6phg6
+module load ngstools-master-gcc-7.3.0-io26imx
+module load py-cutadapt-2.5-gcc-7.3.0-cxoyfgc
+module load bayescan-2.1-gcc-7.3.0-3sehjuq
+module load angsd-0.921-gcc-7.3.0-pcddvqy
+module load vcftools-0.1.14-gcc-7.3.0-llq3o2j
+module load gsl-2.4-gcc-7.3.0-tvtublc
+module load pgdspider-2.1.1.2-gcc-7.3.0-uw5a5p2
+module load admixture-linux-1.3.0-gcc-7.3.0-vkbmyek
+module load ngsadmix-32-gcc-7.3.0-srfkhx7
+module load cdhit-4.8.1-gcc-7.3.0-odtd5wa
+module load bowtie2-2.3.5.1-gcc-7.3.0-kqpgyig
+module load samtools/1.3.1
+module load bayescan-2.1-gcc-7.3.0-3sehjuq
+module load ngsld-master-gcc-7.3.0-b6mzom3
+module load angsd-0.921-gcc-7.3.0-pcddvqy
+module load vcftools-0.1.14-gcc-7.3.0-llq3o2j
+module load plink-1.07-gcc-7.3.0-xhltraz
+module load py-moments-master-gcc-7.3.0-jjtiauo
+module load pgdspider-2.1.1.2-gcc-7.3.0-uw5a5p2
+module load admixture-linux-1.3.0-gcc-7.3.0-vkbmyek
+module load ngsadmix-32-gcc-7.3.0-srfkhx7
+module load cdhit-4.8.1-gcc-7.3.0-odtd5wa
+module load picard-2.20.8-gcc-7.3.0-usi36ru
+module load bowtie2-2.3.5.1-gcc-7.3.0-kqpgyig
+module load samtools/1.3.1
+module load gatk-4.0.4.0-gcc-7.3.0-vg7vqpa
+module load launcher
+module load sratoolkit/2.10.0
+module load R/3.4.0
+module load py-scipy-1.2.1-gcc-7.3.0-ld4zmkx
+module load py-numpy-1.17.3-gcc-7.3.0-dnibjbb
+module load stacks-2.3b-gcc-7.3.0-p2rqo3g
+module load py-faststructure-1.0-gcc-7.3.0-2ld7dha
+module load py-cython-0.29.13-gcc-7.3.0-ge52u4j
+#module load python-3.7.4-gcc-7.3.0-3uaxlqw
+#module load 2brad-denovo-master-gcc-7.3.0-4ct2miz
+module load python-2.7.16-gcc-7.3.0-rzfc2ao
+module load bcftools-1.9-gcc-7.3.0-6zgzmif
+module load py-faststructure-1.0-gcc-7.3.0-2ld7dha
+module load structure/2.3.4
+
+# adding ~/bin to your $PATH
+# paste this where appropriate (note: .bashrc configuration might be specific to your cluster, consult your sysadmin if in doubt)
+export PATH=$HOME/bin:$PATH
+
+# exit by pressing ctrl+x and return "y" to save
+source .bashrc #re-load your .bashrc file
+
+# downloading and installing all 2bRAD scripts in $HOME/bin (or change to whatever directory you want)
+cd
+mkdir bin
+cd ~/bin
+
+# cloning github repositories
+git clone https://github.com/z0on/2bRAD_denovo.git
+
+#git clone https://github.com/z0on/2bRAD_GATK.git
+# move scripts to ~/bin from sub-directories
+mv 2bRAD_GATK/* .
+mv 2bRAD_denovo/* .
+
+# remove now-empty directory
+rm -rf 2bRAD_denovo
+rm -rf 2bRAD_GATK
+
+# designating all .pl and .py files (perl and python scripts) as executable
+chmod +x *.pl
+chmod +x *.py
+chmod +x *.R
+
+#Does it work? Try running a script from $HOME:
+cd
+2bRAD_trim_launch.pl
+#If you get "command not found" something is wrong
+
+# ==============================================
+#Concatenated MCAV Genome/Algal Symbiont Transcriptome reference placement
+
+#Downloading M. cavernosa
+cd ~/2bRAD/cuba
+mkdir mcav_symbiont_genome
+cd ~/2bRAD/cuba/mcav_symbiont_genome
+
+wget https://www.dropbox.com/s/0inwmljv6ti643o/Mcavernosa_genome.tgz?dl=0
+mv Mcavernosa_genome.tgz\?dl\=0 Mcav_genome.tgz
+tar -xvf Mcav_genome.tgz
+
+#Downloading concatenated algal symbiont transcriptome
+wget https://github.com/z0on/ClonesAndClades_Ofav_Keys/blob/master/symABCD.fasta.zip
+gunzip symABCD.fasta.zip
+
+#Concatenate M. cavernosa genome to the algal symbiont transcriptomes
+cat Mcav_genome.fasta symABCD.fasta > mcav_symb.fasta
+
+# Creating genome indices for bowtie2
+export GENOME_FASTA=~/2bRAD/cuba/mcav_symbionts/mcav_symb.fasta
+
+echo 'bowtie2-build $GENOME_FASTA $GENOME_FASTA' > btb
+launcher_creator.py -j btb -n btb -t 1:00:00 -e asturm2017@fau.edu -q shortq7
+sbatch btb.slurm
+
+samtools faidx $GENOME_FASTA
+
+java -jar $PICARD CreateSequenceDictionary REFERENCE=mcav_symb.fasta OUTPUT=mcav_symb.dict
+
+GENOME_DICT=~/2bRAD/cuba/mcav_symbiont_genome/mcav_symb.dict
+
+# ==============================================
+
+#MCAV Only Genome reference placement
+
+#Downloading M. cavernosa genome
+cd ~/2bRAD/cuba
+mkdir mcav_genome
+cd ~/2bRAD/cuba/mcav_genome
+
+wget https://www.dropbox.com/s/0inwmljv6ti643o/Mcavernosa_genome.tgz?dl=0
+mv Mcavernosa_genome.tgz\?dl\=0 Mcav_genome.tgz
+tar -xvf Mcav_genome.tgz
+
+# Extracting gene regions
+cat Mcavernosa.maker.coding.gff3 | awk ' $3=="gene"' | cut -f 1,4,5 >mcav_gene_regions.tab
+
+# GO terms
+cat Mcavernosa_euk.emapper.annotations | cut -f 1,13 >mcav_go.txt
+
+# Gene names
+cat Mcavernosa_euk.emapper.annotations | cut -f 1,13 >mcav_gnames.txt
+
+# Creating genome indices for bowtie2
+export GENOME_FASTA=~/2bRAD/cuba/mcav_genome/Mcav_genome.fasta
+
+echo 'bowtie2-build $GENOME_FASTA $GENOME_FASTA' >btb
+launcher_creator.py -j btb -n btb -t 1:00:00 -e asturm2017@fau.edu -q shortq7
+sbatch btb.slurm
+
+samtools faidx $GENOME_FASTA
+
+java -jar $PICARD CreateSequenceDictionary REFERENCE=Mcav_genome.fasta OUTPUT=Mcav_genome.dict
+
+GENOME_DICT=/~/2bRAD/cuba/mcav_genome/Mcav_genome.dict
+
+# ==============================================
+
+# Go to the directory where your raw reads were copied. Copy the raw reads to a new directory and unzip them them.
+cd ~/2bRAD/cuba
+mkdir reads_unzipped
+cd raw_reads
+srun cp ./*.gz ../reads_unzipped
+
+cd reads_unzipped
+srun gunzip *.gz
+
+#Copy the unzipped files to the concatenated directory, if you have runs split across lanes then run the ngs_concat.pl
+cd ~/2bRAD/cuba
+mkdir reads_concat
+cd ../reads_unzipped
+srun cp *.fastq ../reads_concat
+cd ../reads_concat
+
+#Even on an illumina novaseq reads can be split among lanes. If your pools have multiple file names differing in their L00 number then you must concatenate them together
+srun ngs_concat.pl 'Cuba' 'Cuba(.+)_L' &
+
+# Splitting by in-read barcode, deduplicating and quality-filtering the reads
+cd ~/2bRAD/cuba
+mkdir reads_trimmed
+srun cp ./reads_concat/*.fq ./reads_trimmed
+
+# creating a file of commands to run (assuming reads are in fastq/fq files), one file per sample.
+2bRAD_trim_launch_dedup.pl fastq > trims
+
+#If the files are .fq files after concatenation then use this code:
+2bRAD_trim_launch.pl fq > trims
+
+# Note: use this command instead of the one above if you have 2bRAD libraries without degenerate tag but with 4-base in-line barcode:
+2bRAD_trim_launch.pl fastq barcode2=4 > trims
+
+# And if you have the original-style libraries without degenerate tag and without in-line barcode, use this:
+2bRAD_trim_launch.pl fastq > trims
+
+# AND IF you sequenced your double-barcoded, deduplicatable libraries on HiSeq 4000 alone (resulting in poor quality at restriction site and adaptor bases) and you have used BcgI enzyme, use this:
+2bRAD_trim_launch_dedup2.pl fastq > trims
+
+# We will now execute these files in parallel
+launcher_creator.py -j trims -n trims -t 1:00:00 -e asturm2017@fau.edu -q shortq7
+sbatch trims.slurm
+
+# Do we have expected number of *.tr0 files created? We should have the number of individual sample libraries prepped.
+#Files are barcoded based on 3ill and anti3ill barcodes (1-12). If there is not a file produced then the sample likely failed.
+ls -l *.tr0 | wc -l
+
+#Take this step to organize these samples and connect them back to whatever sample labeling scheme was used. Make a .csv file with generated .tr0 files produced and the name you actually want to call it (relevant to your original naming scheme)
+#Add your csv to your pwd and use the following sampleRename.py script
+# usage: sampleRename.py -i <input .csv file name (no ‘.csv’)>  -f <file extensions (no ‘.’)> -n <common file name to give all samples before number from .csv sheet>
+python ~/bin/sampleRename.py -i sampleList -f tr0 -n Cuba_
+
+#Copy the .tr0 files to a new quality filtering directory
+cd ~/2bRAD/cuba
+mkdir reads_highquality
+srun cp ~/2bRAD/cuba/reads_trimmed/*.tr0 ~/2bRAD/cuba/reads_highquality
+cd ~/2bRAD/cuba/reads_highquality
+
+# Quality filtering using fastx_toolkit
+# Creating a list of filtering commands:
+# The options -q 20 -p 90 mean that 90% or more of all bases within the read should have PHRED quality of at least 20 (i.e., probability of error 1% or less)
+# PHRED quality=10*(-log10(P.error))
+ls *.tr0 | perl -pe 's/^(\S+)\.tr0$/cat $1\.tr0 \| fastq_quality_filter -q 20 -p 90 >$1\.trim/' >filt0
+
+# NOTE: run the next line ONLY if your qualities are 33-based (GSAF results are 33-based):
+cat filt0 | perl -pe 's/filter /filter -Q33 /' > filt
+#if you did NOT run the line above, run this one:
+mv filt0 filt
+
+launcher_creator.py -j filt -n filt -t 1:00:00 -e asturm2017@fau.edu -q shortq7
+sbatch filt.slurm
+
+# Done! do we have the right number of output files (.trim)? Should be the same number as the .tr0 files
+ll *.trim | wc -l
+
+# ==============================================
+
+# Mapping reads to a reference genome and formatting bam files
+cd ~/2bRAD/cuba
+mkdir MCAV_symbs_mapped_reads
+srun cp ~/2bRAD/cuba/reads_highquality/*.trim ~/2bRAD/cuba/MCAV_symbs_mapped_reads
+cd ~/2bRAD/cuba/MCAV_symbs_mapped_reads
+
+# Mapping reads to a reference genome with soft-clipping (Bowtie2 --local option) to avoid indels near read ends
+GGENOME_FASTA=~/2bRAD/cuba/mcav_symbionts/mcav_symb.fasta
+2bRAD_bowtie2_launch.pl '\.trim$' $GENOME_FASTA > maps
+launcher_creator.py -j maps -n maps -t 2:00:00 -e asturm2017@fau.edu -q shortq7
+sbatch maps.slurm
+
+# Produces sam files, check to make sure that this matches number of trim Files
+ls *.sam | wc -l
+
+# Calculate alignment rates
+>alignmentRates
+for F in `ls *fastq`; do
+M=`grep -E '^[ATGCN]+$' $F | wc -l | grep -f - maps.e* -A 4 | tail -1 | perl -pe 's/maps\.e\d+-|% overall alignment rate//g'` ;
+echo "$F.sam $M">>alignmentRates;
+done
+
+# To have more information on what these alignment rates mean you can check your maps file.
+cat maps.e*
+# you will see a series of statements like this one:
+# 13210854 reads; of these:
+# 13210854 (100.00%) were unpaired; of these:
+# 2654522 (20.09%) aligned 0 times
+# 3833643 (29.02%) aligned exactly 1 time
+# 6722689 (50.89%) aligned >1 times
+# 79.91% overall alignment rate
+
+# using awk to find "good" samples with mapping efficiencies >25%
+awk '$2>=25' alignmentRates | cut -f 1 -d " " | sort | uniq > goods
+cat goods
+
+# "bad" samples with mapping efficiencies <25%
+awk '$2<=25' alignmentRates | cut -f 1 -d " " | sort | uniq > bads
+cat bads
+
+#Remove any sample preps with bad mapping efficiencies
+
+#Using ~2Mb contig as a host reference; look up contig lengths in the header of any sam file
+#Run scripts to count read alignments to each of the algal symbiont transcriptomes
+
+zooxType.pl host="Sc0000000" >zooxCounts.txt
+
+#scp zooxCounts.txt to local directory and open as csv file
+
+# ==============================================
+
+#extracting MCAV read alignments
+# (rewriting sam files omitting mappings to chr11-chr14 )
+
+nano mcavgrep
+
+egrep -v "chr11|chr12|chr13|chr14" Cuba_01.trim.bt2.sam > Cuba_01.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_02.trim.bt2.sam > Cuba_02.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_03.trim.bt2.sam > Cuba_03.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_04.trim.bt2.sam > Cuba_04.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_06.trim.bt2.sam > Cuba_06.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_09.trim.bt2.sam > Cuba_09.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_10.trim.bt2.sam > Cuba_10.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_11.trim.bt2.sam > Cuba_11.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_12.trim.bt2.sam > Cuba_12.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_13.trim.bt2.sam > Cuba_13.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_14.trim.bt2.sam > Cuba_14.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_15.trim.bt2.sam > Cuba_15.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_16.trim.bt2.sam > Cuba_16.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_17.trim.bt2.sam > Cuba_17.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_18-1.trim.bt2.sam > Cuba_18-1.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_18-2.trim.bt2.sam > Cuba_18-2.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_18.trim.bt2.sam > Cuba_18.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_19.trim.bt2.sam > Cuba_19.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_20.trim.bt2.sam > Cuba_20.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_21.trim.bt2.sam > Cuba_21.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_22.trim.bt2.sam > Cuba_22.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_23.trim.bt2.sam > Cuba_23.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_24.trim.bt2.sam > Cuba_24.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_25.trim.bt2.sam > Cuba_25.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_26.trim.bt2.sam > Cuba_26.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_27.trim.bt2.sam > Cuba_27.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_28.trim.bt2.sam > Cuba_28.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_30.trim.bt2.sam > Cuba_30.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_31.trim.bt2.sam > Cuba_31.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_32.trim.bt2.sam > Cuba_32.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_33.trim.bt2.sam > Cuba_33.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_34.trim.bt2.sam > Cuba_34.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_35.trim.bt2.sam > Cuba_35.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_36.trim.bt2.sam > Cuba_36.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_37.trim.bt2.sam > Cuba_37.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_38.trim.bt2.sam > Cuba_38.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_41.trim.bt2.sam > Cuba_41.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_43.trim.bt2.sam > Cuba_43.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_44-1.trim.bt2.sam > Cuba_44-1.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_44-2.trim.bt2.sam > Cuba_44-2.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_44.trim.bt2.sam > Cuba_44.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_45.trim.bt2.sam > Cuba_45.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_46.trim.bt2.sam > Cuba_46.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_47.trim.bt2.sam > Cuba_47.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_48.trim.bt2.sam > Cuba_48.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_49.trim.bt2.sam > Cuba_49.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_50.trim.bt2.sam > Cuba_50.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_51.trim.bt2.sam > Cuba_51.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_52.trim.bt2.sam > Cuba_52.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_53.trim.bt2.sam > Cuba_53.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_54.trim.bt2.sam > Cuba_54.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_55.trim.bt2.sam > Cuba_55.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_56.trim.bt2.sam > Cuba_56.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_57.trim.bt2.sam > Cuba_57.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_58.trim.bt2.sam > Cuba_58.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_59.trim.bt2.sam > Cuba_59.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_60.trim.bt2.sam > Cuba_60.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_61-1.trim.bt2.sam > Cuba_61-1.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_61-2.trim.bt2.sam > Cuba_61-2.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_61.trim.bt2.sam > Cuba_61.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_62.trim.bt2.sam > Cuba_62.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_63.trim.bt2.sam > Cuba_63.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_65.trim.bt2.sam > Cuba_65.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_66.trim.bt2.sam > Cuba_66.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_67.trim.bt2.sam > Cuba_67.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_68.trim.bt2.sam > Cuba_68.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_69.trim.bt2.sam > Cuba_69.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_70.trim.bt2.sam > Cuba_70.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_71.trim.bt2.sam > Cuba_71.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_73.trim.bt2.sam > Cuba_73.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_74.trim.bt2.sam > Cuba_74.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_75.trim.bt2.sam > Cuba_75.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_76.trim.bt2.sam > Cuba_76.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_77.trim.bt2.sam > Cuba_77.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_78.trim.bt2.sam > Cuba_78.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_81.trim.bt2.sam > Cuba_81.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_82.trim.bt2.sam > Cuba_82.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_83.trim.bt2.sam > Cuba_83.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_86.trim.bt2.sam > Cuba_86.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_88.trim.bt2.sam > Cuba_88.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_89.trim.bt2.sam > Cuba_89.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_90.trim.bt2.sam > Cuba_90.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_91.trim.bt2.sam > Cuba_91.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_93.trim.bt2.sam > Cuba_93.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_94.trim.bt2.sam > Cuba_94.mcav.bt2.sam
+egrep -v "chr11|chr12|chr13|chr14" Cuba_96.trim.bt2.sam > Cuba_96.mcav.bt2.sam
+
+
+####These files will only have MCAV reads work with them moving forward
+
+# ==============================================
+#Move forward with creating bams files only for samples with mapping efficiencies >25%
+cd ~/2bRAD/cuba
+mkdir MCAV_bams
+srun cp ~/2bRAD/cuba/MCAV_symbs_mapped_reads/*mcav.bt2.sam ~/2bRAD/cuba/MCAV_bams
+cd ~/2bRAD/cuba/MCAV_bams
+
+#Compressing, sorting and indexing the SAM files, so they become BAM files:
+>s2b
+for file in *.sam; do
+echo "samtools sort -O bam -o ${file/.sam/}.bam $file && samtools index ${file/.sam/}.bam">>s2b;
+done
+
+launcher_creator.py -j s2b -n s2b -t 1:00:00 -N 5 -e asturm2017@fau.edu -q shortq7
+sbatch s2b.slurm
+
+ls *bam >bams
+
+# should be the same number as number as the good sam files
+
+# BAM files are the input into various genotype calling / popgen programs, this is the main interim result of the analysis. Archive them!
+
+# ==============================================
+#Assessing base qualities and coverage depth
+# ANGSD settings:
+# -minMapQ 20 : only highly unique mappings (prob of erroneous mapping = 1%)
+# -baq 1 : realign around indels (not really needed for 2bRAD reads as they are mapped with --local option)
+# -maxDepth : highest total depth (sum over all samples) to assess; set to 10x number of samples
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -maxDepth 860"
+
+# T O   D O :
+TODO="-doQsDist 1 -doDepth 1 -doCounts 1 -dumpCounts 2"
+
+# In the following line, -r argument is one chromosome or contig to work with (no need to do this for whole genome as long as the chosen chromosome or contig is long enough)
+# (look up lengths of your contigs in the header of *.sam files)
+angsd -b bams -r chr1 -GL 1 $FILTERS $TODO -P 1 -out dd
+
+#Alternatively can run without the -r flag and it will work with the entire reference genome
+srun angsd -b bams -GL 1 $FILTERS $TODO -P 1 -out dd
+
+# summarizing results (using modified script by Matteo Fumagalli)
+Rscript ~/bin/plotQC.R dd >qranks
+
+# proportion of sites covered at >5x:
+cat qranks
+
+# scp dd.pdf to local drive to look at distribution of base quality scores, fraction of sites in each sample passing coverage thresholds, and fraction of sites passing genotyping rates cutoffs. Use these to guide choices of -minQ,  -minIndDepth and -minInd filters in subsequent ANGSD runs
+
+# ==============================================
+#IBS Matrix to identify clones
+
+# Generating genotype likelihoods from highly confident (non-sequencing-error) SNPs
+# Set minInd to 75-80% of your total number of bams
+# If you expect very highly differentiated populations with nearly fixed alternative alleles, remove '-hwe_pval 1e-5' form FILTERS
+# -doGeno 8 : genotype likelihood format setting for ngsLD; if you want to run PCA, use -doGeno 32 (but I recommend using ibsMat for all ordination work)
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 25 -dosnpstat 1 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 65 -snp_pval 1e-5 -minMaf 0.05"
+
+TODO="-doMajorMinor 4 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doVcf 1 -doPost 1 -doGlf 2"
+
+GENOME_REF=~/2bRAD/cuba/mcav_genome/Mcav_genome.fasta
+
+echo "angsd -b bams -ref $GENOME_REF -GL 1 $FILTERS $TODO -P 1 -out mc_ref" > a.struct
+launcher_creator.py -j a.struct -n a.struct -t 1:00:00 -e asturm2017@fau.edu -q shortq7
+sbatch a.struct.slurm
+
+NSITES=`zcat mc_ref.mafs.gz | wc -l`
+echo $NSITES
+
+#SNPs=9,493
+
+#Logout and scp bams list, and .ibsMat files to a local directory.
+#Make an inds2pops file by associating all of your samples with population names and use R code to generate cluster dendrogram to identify clones
+
+# ==============================================
+cd ~/2bRAD/cuba
+mkdir MCAV_bams_noclones
+srun cp ~/2bRAD/cuba/MCAV_bams/*bam ~/2bRAD/cuba/MCAV_bams_noclones
+cd ~/2bRAD/cuba/MCAV_bams_noclones
+
+#Remove genotyping replicates and all but one of each group of natural clones, of these keep the replicate/clone that has the highest coverage
+
+ls *bam >bams_noclones
+
+#Population structure NO CLONES
+
+# Note: PCA and Admixture are not supposed to be run on data that contain clones or genotyping replicates. For PCA, these can be removed without rerunning ANGSD from the IBS distance matrix; but for ngsAdmix ANGSD must be rerun.
+
+
+# Generating genotype likelihoods from highly confident (non-sequencing-error) SNPs
+# set minInd to 75-80% of your total number of bams
+# if you expect very highly differentiated populations with nearly fixed alternative alleles, remove '-hwe_pval 1e-5' form FILTERS
+# -doGeno 8 : genotype likelihood format setting for ngsLD; if you want to run PCA, use -doGeno 32 (but I recommend using ibsMat for all ordination work)
+
+FILTERS="-uniqueOnly 1 -remove_bads 1 -minMapQ 20 -minQ 25 -dosnpstat 1 -doHWE 1 -sb_pval 1e-5 -hetbias_pval 1e-5 -skipTriallelic 1 -minInd 59 -snp_pval 1e-5 -minMaf 0.05"
+TODO="-doMajorMinor 4 -doMaf 1 -doCounts 1 -makeMatrix 1 -doIBS 1 -doCov 1 -doGeno 8 -doVcf 1 -doPost 1 -doGlf 2"
+GENOME_REF=~/2bRAD/cuba/mcav_genome/Mcav_genome.fasta
+
+echo "angsd -b bams_noclones -ref $GENOME_REF -GL 1 $FILTERS $TODO -P 1 -out mc_noclones" > a2.struct
+launcher_creator.py -j a2.struct -n a2.struct -t 1:00:00 -e asturm2017@fau.edu -q shortq7
+sbatch a2.struct.slurm
+
+NSITES=`zcat mc_noclones.mafs.gz | wc -l`
+echo $NSITES
+
+###########SNPs=9,720
+
+#Logout and scp bams_noclones list, .ibsMat, and vcf files to a local directory.
+#Make an inds2pops_noclones file by associating all of your samples with population names
+#Run relevant R code
+
+# ==============================================
+#Population structure analysis with ADMIXTURE/NGSAdmix Analysis
+
+# NGSAdmix for K from 2 to 11 : do not run if the dataset contains clones or genotyping replicates!
+for K in `seq 2 11` ;
+do
+NGSadmix -likes mc_noclones.beagle.gz -K $K -P 10 -o mc_noclones_k${K};
+done
+
+# alternatively, to use real ADMIXTURE on called SNPs (requires plink and ADMIXTURE):
+gunzip mc_noclones.vcf.gz
+cat mc_noclones.vcf | sed 's/xpSc//g' >mc_noclones_chr.vcf
+cat mc_noclones_chr.vcf | sed 's/xfSc//g' >mc_noclones_chr1.vcf
+cat mc_noclones_chr1.vcf | sed 's/Sc//g' >mc_noclones_chr2.vcf
+plink --vcf mc_noclones_chr2.vcf --make-bed --allow-extra-chr --out mc_noclones
+for K in `seq 1 11`; \
+do admixture --cv mc_noclones.bed $K | tee mc_noclones_${K}.out; done
+
+# which K is least CV error?
+grep -h CV mc_noclones*.out
+
+# scp *qopt to local directory to plot ADMIXTURE
+
+# ==============================================
+#Running STACKS for heterozygosity
+cd ~/2bRAD/cuba
+mkdir stacks
+srun cp ~/2bRAD/cuba/MCAV_bams_noclones/*vcf.gz ~/2bRAD/cuba/stacks
+cd ~/2bRAD/cuba/stacks
+
+#Upload your inds2pops_noclones as a population map
+
+srun populations -V ./mc_noclones.vcf.gz -O . -M ./inds2pops_noclones --fstats --fst_correction p_value --p_value_cutoff 0.05 --smooth --bootstrap --bootstrap-reps 9999
+
+# ==============================================
+#Bayescan: looking for Fst outliers
+
+cd ~/2bRAD/cuba
+mkdir bayescan
+srun cp ~/2bRAD/cuba/MCAV_bams_noclones/*vcf.gz ~/2bRAD/cuba/bayescan
+cd ~/2bRAD/cuba/bayescan
+
+srun gunzip *vcf.gz
+
+# Converting vcf (using PGDspider) to Bayescan format:
+
+# make tab-delimited file called bspops LISTING assignments of individuals (as they are named in the vcf file) to populations, for example:
+ind1	pop0
+ind2	pop0
+ind3	pop1
+ind4	pop1
+
+# create a file called vcf2bayescan.spid containing this text:
+############
+# VCF Parser questions
+PARSER_FORMAT=VCF
+# Do you want to include a file with population definitions?
+VCF_PARSER_POP_QUESTION=true
+# Only input following regions (refSeqName:start:end, multiple regions: whitespace separated):
+VCF_PARSER_REGION_QUESTION=
+# What is the ploidy of the data?
+VCF_PARSER_PLOIDY_QUESTION=DIPLOID
+# Only output following individuals (ind1, ind2, ind4, ...):
+VCF_PARSER_IND_QUESTION=
+# Output genotypes as missing if the read depth of a position for the sample is below:
+VCF_PARSER_READ_QUESTION=5
+# Take most likely genotype if PL or GL is given in the genotype field?
+VCF_PARSER_PL_QUESTION=true
+# Do you want to exclude loci with only missing data?
+VCF_PARSER_EXC_MISSING_LOCI_QUESTION=false
+# Select population definition file:
+VCF_PARSER_POP_FILE_QUESTION=./vcf_popmap
+# Only output SNPs with a phred-scaled quality of at least:
+VCF_PARSER_QUAL_QUESTION=20
+# Do you want to include non-polymorphic SNPs?
+VCF_PARSER_MONOMORPHIC_QUESTION=false
+# Output genotypes as missing if the phred-scale genotype quality is below:
+VCF_PARSER_GTQUAL_QUESTION=20
+# GESTE / BayeScan Writer questions
+WRITER_FORMAT=GESTE_BAYE_SCAN
+# Specify which data type should be included in the GESTE / BayeScan file  (GESTE / BayeScan can only analyze one data type per file):
+GESTE_BAYE_SCAN_WRITER_DATA_TYPE_QUESTION=SNP
+############
+
+# converting vcf from ANGSD to bayescan format
+java -Xmx1024m -Xms512m -jar ~/bin/PGDSpider_2.0.7.1/PGDSpider2-cli.jar -inputfile mc_noclones.vcf -outputfile trimmed_mc.bayescan -spid vcf2bayescan.spid
+
+# launching bayescan (this might take 12-24 hours)
+bayescan trimmed_mc.bayescan -threads=20
+
+#scp bayescan_fst file 
