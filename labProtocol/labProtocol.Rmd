@@ -44,14 +44,14 @@ This lab protocol is published only to demonstrate how samples libraries were pr
 
 ***
 #Digestion
-1.	Prepare samples each containing 200 ng of DNA in 4 µl, 50 ng/uL
+1.	Prepare samples each containing 200 ng of DNA in 4 µL, 50 ng/µL
     + Equalize your input DNA samples well (based on qubit or picogreen, not just nanodrop) and ensure that their OD 260/280 ratio is >=1.8 And 260/230 ration is ~2 or higher.
     + Concentrating can be accomplished by ethanol precipitation, drying under vacuum, or by using a zymo clean and concentrate spin column in low volumes of eluant.
-    + Making a 50 ng/uL dilution plate makes it easy to add the sample to the digestion mastermix later.
+    + Making a 50 ng/µL dilution plate makes it easy to add the sample to the digestion mastermix later.
     
 2. Prepare a digestion master mix.
 ```{r, digestionMM}
-kable(digestionMM, align="c", col.names = (c("Reagent","Volume (uL)", "Total Volume (uL) 96 rxn+10% error"))) %>%
+kable(digestionMM, align="c", col.names = (c("Reagent","Volume (µL)", "Total Volume (µL) 96 rxn+10% error"))) %>%
   kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, 
                 position = 'center')%>%
   column_spec(3, width = "10em")%>%
