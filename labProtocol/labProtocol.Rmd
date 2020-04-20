@@ -1,7 +1,7 @@
 ---
 title: "Protocol for Cuba *Montastraea cavernosa* 2bRAD sample preparation"
 author: "Alexis Sturm --lexie.sturm@gmail.com"
-date: "4/17/2020"
+date: "4/20/2020"
 output:
   html_document:
     theme: paper
@@ -33,11 +33,14 @@ qpcrMM=read.csv("qpcrMM.csv")
 qpcrProfile=read.csv("qpcrProfile.csv")
 testPcrMM=read.csv("testPcrMM.csv")
 pcrProfile=read.csv("pcrProfile.csv")
+pcrMM=read.csv("pcrMM.csv")
+amplificationMix=read.csv("amplificationMix.csv")
+qpcrLibraryMM=read.csv("qpcrLibraryMM.csv")
 
 ```
 
 #About this document
-This lab protocol is published only to demonstrate how samples libraries were prepared for XXX manuscript. The most up-to-date version of this protocol can be found [here](https://docs.google.com/document/d/1am7L_Pa5JQ4sSx0eT5j4vdNPy5FUAtMZRsJZ0Ar5g9U/){target="_blank"} and associated analysis pipelines can be found on [Misha Matz's GitHub repository](https://github.com/z0on/2bRAD_denovo){target="_blank"}. 
+This lab protocol is published only to demonstrate how samples libraries were prepared for XXX manuscript. This 2bRAD protocol is based off the original protocol which was published by [Wang et al. 2012](https://www.nature.com/articles/nmeth.2023?page=2){target="_blank"}. The most up-to-date version of this protocol is available through the [Matz Lab](https://docs.google.com/document/d/1am7L_Pa5JQ4sSx0eT5j4vdNPy5FUAtMZRsJZ0Ar5g9U/){target="_blank"} and associated analysis pipelines can be found on [Misha Matz's GitHub repository](https://github.com/z0on/2bRAD_denovo){target="_blank"}. 
 
 ***
 #Digestion
@@ -48,7 +51,7 @@ This lab protocol is published only to demonstrate how samples libraries were pr
     
 2. Prepare a digestion master mix.
 ```{r, digestionMM}
-kable(digestionMM, col.names = (c("Reagent","Volume (uL)", "Total Volume (uL) 96 rxn+10% error"))) %>%
+kable(digestionMM, align="c", col.names = (c("Reagent","Volume (uL)", "Total Volume (uL) 96 rxn+10% error"))) %>%
   kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, 
                 position = 'center')%>%
   column_spec(3, width = "10em")%>%
@@ -66,7 +69,7 @@ kable(digestionMM, col.names = (c("Reagent","Volume (uL)", "Total Volume (uL) 96
 6. Inactivate the enzyme at 65°C for 10 min then hold samples at 4°C. **Hold samples on ice after this.**
 
 ```{r, digestProfile}
-kable(digestProfile) %>%
+kable(digestProfile, align="c") %>%
   kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, 
                 position = 'center')%>%
                 add_header_above(c("Digestion PCR Profile"=2))
@@ -81,7 +84,7 @@ In this step adaptors are ligated to the restriction fragments produced above.
 * For a full plate, prepare Adaptor 1 in PCR tube, mix 60 µl of 5ILL-NNRW (10 µM) with 60 µl of Anti5ill-NNRW (10 µM).
 
 ```{r, adaptor1}
-kable(adapt1, col.names = (c("Adapter 1 Component","Volume (uL)", "Total Volume (uL)"))) %>%
+kable(adapt1, align="c", col.names = (c("Adapter 1 Component","Volume (uL)", "Total Volume (uL)"))) %>%
 kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
   row_spec(3, bold=T)
 ```
@@ -89,7 +92,7 @@ kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width 
 * For Adaptor 2, set up 12 PCR tubes, to each tube mix 5 µl of 3illBC(1-12) (10 µM) with 5 µl Anti-ill-BC(1-12) (10 µM).
 
 ```{r, adaptor2}
-kable(adapt2, col.names = (c("Adapter 2 Component","Volume (uL)", "Total Volume (uL)"))) %>%
+kable(adapt2, align="c", col.names = (c("Adapter 2 Component","Volume (uL)", "Total Volume (uL)"))) %>%
 kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
   row_spec(3, bold=T)
 ```
@@ -99,7 +102,7 @@ kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width 
 2.  Prepare 12 master mixes for ligations (one for each barcoded 3’ primer).
 This recipe is for a single reaction, so scale up as needed.
 ```{r, ligationMM}
-kable(ligationMM, col.names = (c("Component","Reaction Volume (uL)"))) %>%
+kable(ligationMM, align="c", col.names = (c("Component","Reaction Volume (uL)"))) %>%
 kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
   column_spec(1, width = "15em")%>%
   row_spec(6, bold=T)
@@ -107,7 +110,7 @@ kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width 
 
 First make an initial master mix:
 ```{r, ligationInitialMM}
-kable(ligationInitialMM, col.names = (c("Component","Reaction Volume (uL)", "Total Volume (uL) for 8 rxn+10% error", "Total Volume for 12 MM+10% error"))) %>%
+kable(ligationInitialMM, align="c", col.names = (c("Component","Reaction Volume (uL)", "Total Volume (uL) for 8 rxn+10% error", "Total Volume for 12 MM+10% error"))) %>%
 kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
   column_spec(1, width = "8em")%>%
   column_spec(2, width = "8em")%>%
@@ -118,7 +121,7 @@ kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width 
 
 Then into 12 separate 0.2 mL PCR tubes add:
 ```{r, ligationStripTube}
-kable(ligationStripTube, col.names = (c("Component", "Total Volume (uL) for 8 rxn+10% error"))) %>%
+kable(ligationStripTube, align="c", col.names = (c("Component", "Total Volume (uL) for 8 rxn+10% error"))) %>%
 kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
   column_spec(1, width = "8em")%>%
   column_spec(2, width = "4em")%>%
@@ -130,7 +133,7 @@ kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width 
 
 5.	Heat at 65°C for at least 40 min to inactivate the ligase (in a thermocycler with heated lid). 
 ```{r, ligationProfile}
-kable(ligationProfile) %>%
+kable(ligationProfile, align="c") %>%
   kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, 
                 position = 'center')%>%
                 add_header_above(c("Ligation PCR Profile"=2))
@@ -140,7 +143,7 @@ kable(ligationProfile) %>%
 1.	Prepare  a qPCR Plate, for each plate you can run three rows of samples in duplicate and three negative control wells, you will need to run three qPCR plates for every ligation plate.
 
 ```{r, qpcrMM}
-kable(qpcrMM, col.names = (c("Component", "Reaction Vol (uL)", "Total Volume (uL) for 75 rxn+10% error"))) %>%
+kable(qpcrMM, align="c", col.names = (c("Component", "Reaction Vol (uL)", "Total Volume (uL) for 75 rxn+10% error"))) %>%
 kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
   row_spec(7, bold=T)
 ```
@@ -154,7 +157,7 @@ kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width 
 5.	Turn on qPCR machine, ensure the correct reaction volume (15 uL) is inputted, follow the 2bRAD template and ensure the plate is inserted correctly.
 
 ```{r, qpcrProfile}
-kable(qpcrProfile, col.names = (c("# of Cycles", "Step", "Temperature", "Acquisition", "Time"))) %>%
+kable(qpcrProfile, align="c", col.names = (c("# of Cycles", "Step", "Temperature", "Acquisition", "Time"))) %>%
 kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')
 ```
 6.	 Rank samples from highest to lowest CT score.
@@ -164,7 +167,7 @@ kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width 
 ##Optional Step: Test PCR
 *Optional*: Test PCR for a set of 8 ligations, recommended to use 4 with low Ct values and 4 with high Ct values if qPCR was conducted:
 ```{r, testPcrMM}
-kable(testPcrMM, col.names = (c("Reagent", "Volume (uL) per sample", "Total Volume (uL) for 8 rxn+10% error"))) %>%
+kable(testPcrMM, align="c", col.names = (c("Reagent", "Volume (uL) per sample", "Total Volume (uL) for 8 rxn+10% error"))) %>%
 kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
   row_spec(9, bold=T)
 ```
@@ -173,7 +176,7 @@ kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width 
 
 Amplify as follows:
 ```{r, pcrProfile}
-kable(pcrProfile, col.names= (c("Temperature", "Time", "")))%>%
+kable(pcrProfile, align="c", col.names= (c("Temperature", "Time", "")))%>%
   kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, 
                 position = 'center')%>%
                 add_header_above(c("Amplification PCR Profile"=3))%>%
@@ -182,4 +185,72 @@ kable(pcrProfile, col.names= (c("Temperature", "Time", "")))%>%
 
 2. Load 5 µl on a 2% agarose gel alongside LMW ladder or other marker that has 150 and 200 bp bands. Confirm that all samples have a *visible band at ~180 bp*.
 
-3. Pool ligations by row in strip-tubes, using 6 µl from each well. The 96-well plate is now reduced to 8 pooled samples, each corresponding to the original row. Store the ligations at -20°C.
+#Amplification
+
+1. Pool ligations by row in strip-tubes, using 6 µl from each well. The 96-well plate is now reduced to 8 ligation pools, each corresponding to the original row. Store the ligations at -20°C.
+
+2. For each reaction prepare the following master mix: 
+```{r, PcrMM}
+kable(pcrMM, align="c", col.names = (c("Reagent", "Volume (uL) per sample", "Total Volume (uL) for 8 rxn+10% error"))) %>%
+kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
+  row_spec(7, bold=T)
+```
+
+3. Set up the 8 PCR tubes and combine:
+```{r, amplificationMix}
+kable(amplificationMix, align="c", col.names = (c("Reagent", "Volume (uL)"))) %>%
+kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
+  row_spec(5, bold=T)
+```
+
+4. Amplify as follows:
+```{r, pcrProfile2}
+kable(pcrProfile, align="c", col.names= (c("Temperature", "Time", "")))%>%
+  kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, 
+                position = 'center')%>%
+                add_header_above(c("Amplification PCR Profile"=3))%>%
+                row_spec(c(2,3,4), bold=T)
+```
+
+5. Load 5 µl on a 2% agarose gel alongside LMW ladder or other marker that has 150 and 200 bp bands. Running the gel at 150 V for 30 minutes should result in enough band separation.
+
+6. Confirm that all samples have a visible band at *~180 bp*. You might also see a band below 150 bp, which is an artifact from the carried-over ligase (if this is an issue you can heat inactivate the ligase for longer)
+* If the 180 bp product is visible but barely, add two more cycles to the same reactions, do not continue to amplify the samples if no band is visible at 15 cycles, go back and troubleshoot the samples within that pool.
+
+Now, you can send these pools off for automated size-selection through pippin prep, or can manually size-select and gel-purify.
+
+##Optional Step: Gel-purification
+1.	Prepare a 2% agarose gel using Sodium Borate buffer. Use a wide comb that can accommodate 30-50 μl, or simply tape together two wells.
+
+2.	Load 30-50 μl of sample (40 μl sample + 10 μl loading dye) alongside LMW ladder. Run gel at low voltage for 90 minutes at 100 V or until bands at 150bp and 200bp will be clearly resolved. 
+
+3. View the gel on a blue-light transilluminator to verify the presence of target band and adequate separation of molecular weight standards to resolve bands at ~180 bp and (possibly) below 150 bp. Photograph.
+
+4.	Cut out target ~180 bp band in a narrow gel slice, avoiding the edges of the lane (i.e., cut out the middle 70-75% of the band). Cut just inside the bottom boundary of the target band to avoid getting anything smaller.
+
+5.	Follow the [QiaQuick](https://www.qiagen.com/jp/resources/download.aspx?id=a72e2c07-7816-436f-b920-98a0ede5159a&lang=en){target="_blank"} gel extraction protocol.
+
+##Optional Step: Combining libraries for sequencing
+Pool libraries in equimolar ratios to try to equalize coverage across sample pools.
+
+1.	Prepare a 1:100 dilution of each pooled library by combining 2 uL of eluted library with 198 uL of NFW, can use multi-channel pipette.
+
+2.	Prepare qPCR mastermix, run each library in duplicate and have 2-3 wells reserved for negative controls.
+```{r, qpcrLibraryMM}
+kable(qpcrLibraryMM, align="c", col.names = (c("Reagent", "Volume (uL) per sample", "Total Volume (uL) for 21 rxns (8 rxns in duplicate and three negative controls + error)"))) %>%
+kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = FALSE, position = 'center')%>%
+  row_spec(c(5,6), bold=T)
+```
+
+3.	Conduct qPCR following previously described qPCR profile and calculate CT values for each sample.
+
+4.	To determine volumes of each library for the combined pool:
+* Rank samples from lowest to highest CT and identify reference sample (sample with the highest CT)
+* Calculate the proportion of each library to sequence as: PL= 2 ^ [CT(sample) – CT (reference)]
+* Calculate the volume of each library to use as: V= PL * 28 uL
+
+5.	Combine libraries and follow Zymo Clean and Concentrator Protocol to concentrate final libraries in ~25 uL of NFW. 
+* **Note**: For PCR products you must use a 5:1 ratio of binding buffer to sample.
+
+6.	Qubit the final pool with a high-sensitivity kit to determine if further concentration is needed.
+
