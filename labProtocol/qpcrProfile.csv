@@ -1,0 +1,9 @@
+﻿# Cycles,Step,Temperature,Acquisition,Time
+1x,Pre-Incubation,95C,None,10 min
+40x,Amplification,95C,None,15 sec
+,,60C,None,30 sec
+,,72C,Single,30 sec
+1x,Melting Curve,95C,None,5 sec
+,,65C,None,1 min
+,,97C,Continuous,
+1x,Cooling,40C,None,10   sec
