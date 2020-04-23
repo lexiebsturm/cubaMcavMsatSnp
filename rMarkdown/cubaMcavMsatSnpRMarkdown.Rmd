@@ -26,6 +26,7 @@ This is the code that accompanies the publication XXX. Here you will find all th
 Code to produce these figures was generated with help from [Ryan Eckert](https://ryanjeckert.weebly.com){target="_blank"}, if you think this walkthrough is helpful check out similar ones for Symbiodiniaceae *ITS2* analyses [here](https://RyanEckert.github.io/Belize_Mcav_Symbiodiniaceae_ITS2/stats){target="_blank"}. 
 
 If you have any issues or questions about the code please feel free to send an email to lexie.sturm@gmail.com.
+
 ***
 
 # Basic setup of R environment
