@@ -1,7 +1,7 @@
 ---
 title: "Population genetic structure of *Montastraea cavernosa* using microsatellite and SNP markers: Analyses and Figures in R"
 author: "Alexis Sturm -- lexie.sturm@gmail.com and Ryan Eckert-- ryan.j.eckert@gmail.com"
-date: "4/16/2020"
+date: "4/23/2020"
 output:
   html_document:
     theme: flatly
@@ -14,12 +14,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE, fig.align = 'left')
 knitr::opts_knit$set(root.dir = '../data')
-options(width = 88)
+options(width = 88, scipen = 4)
 ```
 ***
 
 # About this document
-
 ***  
 All analyses were performed in R version 3.6.2. 
 This is the code that accompanies the publication XXX. Here you will find all the code to repeat the statistical analyses performed in R and the figures created for the manuscript. The accompanying library preparation protocol and bioinformatic walkthrough can be found by clicking on the links.
@@ -27,12 +26,10 @@ This is the code that accompanies the publication XXX. Here you will find all th
 Code to produce these figures was generated with help from [Ryan Eckert](https://ryanjeckert.weebly.com){target="_blank"}, if you think this walkthrough is helpful check out similar ones for Symbiodiniaceae *ITS2* analyses [here](https://RyanEckert.github.io/Belize_Mcav_Symbiodiniaceae_ITS2/stats){target="_blank"}. 
 
 If you have any issues or questions about the code please feel free to send an email to lexie.sturm@gmail.com.
-
 ***
 
 # Basic setup of R environment
 ***
-
 ## Loading required packages
 Make sure to set the working directory: 
 `setwd("~/path/to/directory/with/data")`
@@ -44,7 +41,7 @@ setwd("../data")
 For the following analyses we will require the use of multiple different R packages, we can use the package *pacman* to quickly load them.
 ```{r, load packages, include = TRUE, message = FALSE, warning = FALSE, results = 'hide'}
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patchwork", "poppr", "RColorBrewer", "reshape2", "StAMPP", "tidyverse", "vcfR", "vegan", "paletteer", "WGCNA")
+pacman::p_load("adegenet", "dendextend", "flextable", "ggdendro", "hierfstat", "Imap", "kableExtra", "paletteer", "patchwork", "officer", "poppr", "RColorBrewer", "reshape2", "StAMPP", "tidyverse", "vcfR", "vegan", "WGCNA")
 ```
 
 # Figures and analyses
@@ -53,17 +50,22 @@ pacman::p_load("adegenet", "dendextend", "ggdendro", "hierfstat", "Imap", "patch
 This figure was created in ArcMap and Adobe Illustrator
 
 ![](../figures/Figure1.png)
-```{r, kableExtra, include = FALSE, message = FALSE, warning = FALSE, results = 'hide'}
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load("kableExtra")
-gpsCoords=read.csv("../rMarkdown/samplingGpsCoords.csv")
-
+<br>
+```{r, kableExtra, echo = FALSE}
+gpsCoords = read.csv("samplingGpsCoords.csv", check.names = FALSE)
+flextable(gpsCoords) %>%
+  theme_zebra() %>%
+  hline_top(part = "header", border = fp_border(color = "black", width = 2)) %>%
+  hline_bottom(part = "header", border = fp_border(color = "black", width = 2)) %>%
+  hline_bottom(part = "body", border = fp_border(color = "black", width = 2)) %>%
+  fontsize(size = 14, part = "all") %>%
+  autofit(add_w = .5)
+  
 ```
 
-```{r, samplingGpsCoords, echo=FALSE}
+```{r, samplingGpsCoords, echo = FALSE, include = FALSE}
 kable(gpsCoords, col.names = (c("Sampling Site","Sampling Date", "Depth Range (m)", "ng", "Latitude", "Longitude"))) %>%
   kable_styling(bootstrap_options = c("condensed", "hover","striped"), full_width = TRUE, position = 'left')
-  
 ```
 
 ## Figure 2: IBS dendrogram with clones
@@ -146,8 +148,8 @@ From this dendrogram you can see that there are two pairs of samples (indicated 
 Save the dendrogram:
 
 ```{r, Dendrogram save}
-ggsave("../rMarkdown/Figure2.eps", plot = cloneDend, height = 4.75, width = 13, units = "in", dpi = 300)
-ggsave("../rMarkdown/Figure2.tiff", plot = cloneDend, height = 4.75, width = 13, units = "in", dpi = 300)
+ggsave("../figures/Figure2.eps", plot = cloneDend, height = 4.75, width = 13, units = "in", dpi = 300)
+ggsave("../figures/Figure2.tiff", plot = cloneDend, height = 4.75, width = 13, units = "in", dpi = 300)
 ```
 
 ## Figure 3: Heterozygosity plot
@@ -183,11 +185,12 @@ hetPlot
 The plot was edited in Illustrator to give the bars crosshatching texture instead of transparency.
 
 ```{r, Heterozygosity plot save}
-ggsave("../rMarkdown/Figure3.tiff", plot = hetPlot, width = 25, height = 15, units = "cm", dpi = 300)
-ggsave("../rMarkdown/Figure3.eps", plot = hetPlot, width = 25, height = 15, units = "cm", dpi = 300)
+ggsave("../figures/Figure3.tiff", plot = hetPlot, width = 25, height = 15, units = "cm", dpi = 300)
+ggsave("../figures/Figure3.eps", plot = hetPlot, width = 25, height = 15, units = "cm", dpi = 300)
 ```
 
 ## Figure 4: Cluster dendrogram without clones
+
 ### Microsatellites
 The program [*poppr*](https://grunwaldlab.github.io/Population_Genetics_in_R/){target="_blank"} can read in microsatallite multi-locus genotypes exported from [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"} as .csv files and can calculate a variety of distance metrics from this data. For microsatellite data with some missing loci, they recommend using Prevosti's distance.
 
@@ -210,6 +213,7 @@ msDendA = ggplot() +
   geom_segment(data = segment(msDData), aes(x = x, y = y, xend = xend, yend = yend)) +
   geom_point(data = msDendPoints, aes(x = x, y = y, fill = site), size = 5, shape = 21) +
   scale_fill_brewer(palette = "Dark2", name = "Population", labels = plotPops) +
+  ggtitle("   Microsatellite") +
   theme_dendro()
 
 msDend = msDendA + theme(
@@ -240,6 +244,7 @@ snpDendA = ggplot() +
   geom_segment(data = segment(snpDData), aes(x = x, y = y, xend = xend, yend = yend)) +
   geom_point(data = snpDendPoints, aes(x = x, y = y, fill = site), size = 5, shape = 21) +
   scale_fill_brewer(palette = "Dark2", name = "Population", labels = plotPops) +
+  ggtitle("   SNP") +
   theme_dendro()
 
 snpDend = snpDendA + theme(
@@ -262,12 +267,11 @@ plot_layout(guides = "collect") + # collapses the legends into one
 
 combinedDendro
 
-ggsave("../rMarkdown/Figure4.tiff", plot = combinedDendro, width = 45, height = 16, units = "cm", dpi = 300)
-ggsave("../rMarkdown/Figure4.eps", plot = combinedDendro, width = 45, height = 16, units = "cm", dpi = 300)
+ggsave("../figures/Figure4.tiff", plot = combinedDendro, width = 45, height = 16, units = "cm", dpi = 300)
+ggsave("../figures/Figure4.eps", plot = combinedDendro, width = 45, height = 16, units = "cm", dpi = 300)
 ```
 
 ## Figure 5: Ordination plots
-
 ### SNPs
 ```{r, vcf2genlight}
 cubaVcf = read.vcfR("trimmed_mc_renamed.vcf.gz") #This vcf file has all of your SNP genotype likelihoods and is generated by ANGSD
@@ -315,6 +319,7 @@ cubaSnpPcaPlotA = ggplot(snpPca, aes(x = PC1, y = PC2, color = site, fill = site
   xlab(paste ("PC 1 (", snpPcVar[1],"%)", sep = "")) + #Prints percent variation explained by first axis
   ylab(paste ("PC 2 (", snpPcVar[2],"%)", sep = "")) + #Prints percent variation explained by second axis
   guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1))+
+  ggtitle("SNP") +
   theme_bw()
 
 cubaSnpPcaPlot = cubaSnpPcaPlotA + 
@@ -372,6 +377,7 @@ cubaSnpPcoaPlotA = ggplot(cubaSnpPcoa, aes(x = PCo1, y = PCo2, fill = site, shap
   xlab(paste ("PCo 1 (", cubaSnpPcoaVar[1],"%)", sep = "")) +
   ylab(paste ("PCo 2 (", cubaSnpPcoaVar[2],"%)", sep = "")) +
   guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1))+
+  ggtitle("SNP") +
   theme_bw()
 
 cubaSnpPcoaPlot = cubaSnpPcoaPlotA + 
@@ -428,6 +434,7 @@ cubaMsatPcaPlotA = ggplot(mSatPca, aes(x, y, color = site, fill = site)) +
   xlab(paste ("PC 1 (", mSatPcVar[1],"%)", sep = "")) +
   ylab(paste ("PC 2 (", mSatPcVar[2],"%)", sep = "")) +
   guides(fill = guide_legend(override.aes = list(size = 4, shape = 22, color = NA), order = 1))+
+  ggtitle("Microsatellite") +
   theme_bw()
 
 cubaMsatPcaPlot = cubaMsatPcaPlotA + 
@@ -464,6 +471,7 @@ cubaMsatPcoaPlotA = ggplot(cubaMsatPcoa, aes(x = PCo1, y = PCo2, fill = site, sh
   xlab("PCo 1 (58.0%)") +
   ylab("PCo 2 (14.1%)") +
   guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA)))+
+  ggtitle("Microsatellite") +
   theme_bw()
 
 cubaMsatPcoaPlot = cubaMsatPcoaPlotA + 
@@ -494,8 +502,8 @@ cubaOrdPlots = (cubaMsatPcoaPlot|cubaMsatPcaPlot)/(cubaSnpPcoaPlot|cubaSnpPcaPlo
 
 cubaOrdPlots
 
-ggsave("../rMarkdown/Figure5.eps", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
-ggsave("../rMarkdown/Figure5.tiff", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
+ggsave("../figures/Figure5.eps", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
+ggsave("../figures/Figure5.tiff", plot = cubaOrdPlots, height = 20, width = 25, unit = "cm", dpi = 300)
 ```
 
 ## Calculating AMOVA from SNP data
@@ -534,7 +542,7 @@ amovasignif
 Pairwise Fst values and associated p-values were calculated in [GenAlEx](https://biology-assets.anu.edu.au/GenAlEx/Welcome.html){target="_blank"} and read in as matrices in csv files.
 ```{r, Fstmicrosat, fig.dim = c(13.4, 4.9)}
 # reads in fst matrix
-msFstMa = read.csv("fst-values.csv", head = TRUE)
+msFstMa = read.csv("msFstValues.csv", head = TRUE)
 msFstMa
 pops = plotPops[c(1, 7, 8, 3, 6, 2, 5, 4)]
 
@@ -546,19 +554,21 @@ msFstMa$Pop = factor(msFstMa$Pop, levels = unique(msFstMa$Pop))
 levels(msFstMa$Pop) = pops
 
 # reads in q value matrix
-msQMa = read.csv("fst-q-values.csv") #q-values are FDR-corrected p-values
+msQMa = read.csv("msFstPvalues.csv") #q-values are FDR-corrected p-values
 names(msQMa) = c("Pop", pops)
-msQMa$Pop = factor(msQMa$Pop, levels=unique(msQMa$Pop))
-levels(msQMa$Pop) = pops
+msQMa$Pop = factor(msQMa$Pop, levels = unique(pops))
+
 
 # melts fst and q value matrices into table used by ggplot2
 # missing values (NA) not used
 msFst= melt(msFstMa, id.vars = "Pop", value.name = "Fst", variable.name = "Pop2", na.rm = TRUE)
 msFst = msFst[msFst$Pop != msFst$Pop2,]
+msFst$Fst = round(msFst$Fst, 3)
 head(msFst)
 
-msQ = melt(msQMa, id.vars = "Pop", value.name = "Fst", variable.name = "Pop2", na.rm = TRUE)
+msQ = melt(msQMa, id.vars = "Pop", value.name = "Pval", variable.name = "Pop2", na.rm = TRUE)
 msQ = msQ[msQ$Pop != msQ$Pop2,]
+msQ$Qval = p.adjust(msQ$Pval, method = "BH")
 head(msQ)
 
 # ggplot2 heatmap using geom_tile
@@ -569,16 +579,17 @@ heatmap=ggplot(data = msFst, aes(Pop, Pop2, fill = Fst))+
   scale_fill_gradient2(low = "white", high ="red", midpoint=0, limit = c(0,0.22), # change the upper threshold based on your highest Fst
                        space = "Lab", name = expression(paste(italic("F")[ST])))+ 
   geom_text(data = subset(msFst, Fst = 0), aes(Pop, Pop2, label = Fst), 
-            color = ifelse(msQ$Fst <= 0.05, "black", ifelse(msQ$Fst >= 1,"white","darkgrey")), 
-            size = ifelse(msQ$Fst < 0.05, 6, 5)) +
+            color = ifelse(msQ$Qval <= 0.05, "black", ifelse(msQ$Qval >= 1,"white","darkgrey")), 
+            size = ifelse(msQ$Qval < 0.05, 6, 5)) +
   guides(fill = guide_colorbar(barwidth = 1, barheight = 12, title.position = "top", title.hjust = 0.5)) + 					
   scale_y_discrete(position = "right") +
   scale_x_discrete(labels = str_wrap(msFst$Pop, width = 6)) +
+  ggtitle("   Microsatellite") +
   theme_minimal()
 
-msHeatmap=heatmap+theme(
-  axis.text.x = element_text(vjust = 1, size = 16, hjust = 0.5,color="black"), 
-  axis.text.y = element_text(size=16,color="black"),
+msHeatmap = heatmap + theme(
+  axis.text.x = element_text(vjust = 1, size = 16, hjust = 0.5, color = "black"), 
+  axis.text.y = element_text(size = 16, color = "black"),
   axis.title.x = element_blank(),
   axis.title.y = element_blank(),
   panel.grid.major = element_blank(),
@@ -588,8 +599,10 @@ msHeatmap=heatmap+theme(
   legend.justification = c(1, 0),
   legend.position = "right",
   legend.direction = "vertical",
-  legend.title = element_text(size = 18), 
-  legend.text = element_text(size = 14)) 
+  legend.title = element_text(size = 16), 
+  legend.text = element_text(size = 14),
+  plot.title = element_text(size = 16)
+) 
   
 msHeatmap
 ```
@@ -597,51 +610,51 @@ msHeatmap
 ### SNPs
 Calculate pairwise Fst among populations
 ```{r, pairwiseFstSNP}
-cuba.fst<-stamppFst(cubaGenlight, nboots = 99, percent =95, nclusters=1) #99 permutations
+set.seed(694)
+cuba.fst<-stamppFst(cubaGenlight, nboots = 99, percent = 95, nclusters = 4) #99 permutations
 
 cuba.fst$Fsts
 cuba.fst$Pvalues
-
-write.csv(cuba.fst$Fsts, "../rMarkdown/cubaFST.csv")
-write.csv(cuba.fst$Pvalues, "../rMarkdown/cubap-values.csv")
-
 ```
 FDR correct the p-values to q-values and round the Fst values to 3  digits.
 
 ```{r, FstSNP, fig.dim = c(13.4, 4.9)}
 # reads in fst matrix
-snpFstMa = read.csv("cubaFST.csv", head = TRUE)
+snpFstMa = as.data.frame(cuba.fst$Fsts)
 
-names(snpFstMa) = c("Pop", pops)
+names(snpFstMa) = pops
+row.names(snpFstMa) = pops
 
-snpFstMa$Pop = factor(snpFstMa$Pop, levels = unique(snpFstMa$Pop))
-levels(snpFstMa$Pop) = pops
+snpFstMa$Pop = factor(row.names(snpFstMa), levels = unique(pops))
+levels(snpFstMa$Pop)
 
-snpQMa = read.csv("cubaq-values.csv")
-names(snpQMa)=c("Pop", pops)
-snpQMa$Pop = factor(snpQMa$Pop, levels=unique(snpQMa$Pop))
-levels(snpQMa$Pop) = pops
+snpQMa = data.frame(cuba.fst$Pvalues)
+names(snpQMa)= pops
+row.names(snpQMa) = pops
+snpQMa$Pop = factor(row.names(snpQMa), levels = unique(pops))
 
 snpFst = melt(snpFstMa, id.vars = "Pop", value.name = "Fst", variable.name = "Pop2", na.rm = TRUE)
 snpFst = snpFst[snpFst$Pop != snpFst$Pop2,]
+snpFst$Fst = round(snpFst$Fst, 3)
+snpFst = snpFst %>% mutate(Fst = replace(Fst, Fst < 0, 0))
 head(snpFst)
 
-snpQ = melt(snpQMa, id.vars = "Pop", value.name = "Fst", variable.name = "Pop2", na.rm = TRUE)
+snpQ = melt(snpQMa, id.vars = "Pop", value.name = "Pval", variable.name = "Pop2", na.rm = TRUE)
 snpQ = snpQ[snpQ$Pop != snpQ$Pop2,]
+snpQ$Qval = p.adjust(snpQ$Pval, method = "BH")
 head(snpQ)
+
 
 snpHeatmapA = ggplot(data = snpFst, aes(Pop, Pop2, fill = Fst))+ 
   geom_tile(color = "white")+ 
   scale_fill_gradient2(low = "white", high = "red", midpoint = 0, limit = c(0, 0.22), 
                        space = "Lab", name = expression(paste(italic("F")[ST])))+ 
-  theme_minimal()+ 
-  geom_text(data = subset(snpFst, Fst = 0), 
-            aes(Pop, Pop2, label = Fst),
-            color = ifelse(snpQ$Fst <= 0.05,"black",ifelse(snpQ$Fst >= 1,"white","darkgrey")),
-            size = ifelse(snpQ$Fst < 0.05, 6, 5)) +
+  geom_text(data = snpFst, aes(Pop, Pop2, label = Fst), color = ifelse(snpQ$Qval <= 0.05,"black", "darkgrey"), size = ifelse(snpQ$Qval < 0.05, 6, 5)) +
   guides(fill=guide_colorbar(barwidth = 1, barheight = 12, title.position = "top", title.hjust = 0.5))+ 					
-  scale_y_discrete(position="right")+
-  scale_x_discrete(labels=str_wrap(snpFst$Pop, width=6))
+  scale_y_discrete(position = "right")+
+  scale_x_discrete(labels = str_wrap(snpFst$Pop, width = 6)) +
+  ggtitle("   SNP") +
+  theme_minimal()
 
 snpHeatmap = snpHeatmapA + theme(
   axis.text.x = element_text(vjust = 1, size = 16, hjust = 0.5, color = "black"), 
@@ -655,13 +668,15 @@ snpHeatmap = snpHeatmapA + theme(
   legend.justification = c(1, 0),
   legend.position = "right",
   legend.direction = "vertical",
-  legend.title = element_text(size = 18),
-  legend.text = element_text(size = 14))
+  legend.title = element_text(size = 16),
+  legend.text = element_text(size = 14),
+  plot.title = element_text(size = 16)
+)
 
 snpHeatmap
 ```
 
-###Combine all the plots together with *patchwork*
+### Combine all the plots together with *patchwork*
 ```{r, fstHeatMapCombined, fig.dim = c(13.4, 9.8)}
 combinedHeatmap = (msHeatmap / snpHeatmap) +
  plot_layout(guides = 'collect') +
@@ -670,8 +685,8 @@ combinedHeatmap = (msHeatmap / snpHeatmap) +
 
 combinedHeatmap
 
-ggsave("../rMarkdown/Figure6.tiff", plot = combinedHeatmap, width = 34, height = 25, units = "cm", dpi = 300)
-ggsave("../rMarkdown/Figure6.eps", plot = combinedHeatmap, width = 34, height = 25, units = "cm", dpi = 300)
+ggsave("../figures/Figure6.tiff", plot = combinedHeatmap, width = 34, height = 25, units = "cm", dpi = 300)
+ggsave("../figures/Figure6.eps", plot = combinedHeatmap, width = 34, height = 25, units = "cm", dpi = 300)
 ```
 
 ## Figure 7: STRUCTURE/ADMIXTURE plots
@@ -688,7 +703,6 @@ colPalStr = c("blue", "turquoise")
 
 names(colPalStr) = levels(msStrDat$Ancestry)
 
-
 msStructureA = ggplot(msStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
   geom_bar(stat = "identity", position = "fill", width = 1, colour = "grey25") +
   facet_grid(~fct_inorder(Population), scales = "free", switch = "x", space = "free") +
@@ -697,11 +711,12 @@ msStructureA = ggplot(msStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
   scale_y_continuous(expand = c(0, 0)) +
   scale_fill_manual(values = colPalStr) +
   labs(y = "Ancestry") +
-  coord_cartesian(ylim = c(-.01,1.01), clip = "off") +
+  coord_cartesian(ylim = c(-.01, 1.01), clip = "off") +
+  ggtitle("Microsatellite") +
   theme_bw()
 
 msStructure = msStructureA + theme(
-  plot.title = element_text(hjust = 0.5),
+  plot.title = element_text(size = 15),
   panel.grid = element_blank(),
   panel.background = element_rect(fill=NA, colour="black"),
   panel.spacing.x = grid:::unit(0, "lines"),
@@ -716,7 +731,8 @@ msStructure = msStructureA + theme(
   strip.text = element_blank(),
   legend.key = element_blank(),
   legend.title = element_blank(),
-  legend.position = "none")
+  legend.position = "none"
+)
 
 msStructure
 ```
@@ -732,8 +748,8 @@ strPops = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Ju
 levels(snpStr$Population) = strPops
 snpStr$Order = c(1:nrow(snpStr))
 
-snpStrDat = melt(snpStr, id.vars=c("Sample", "Population", "Order"), 
-            variable.name="Ancestry", value.name="Fraction")
+snpStrDat = melt(snpStr, id.vars = c("Sample", "Population", "Order"), 
+            variable.name = "Ancestry", value.name = "Fraction")
 
 popAnnoStr = data.frame(x1 = c(0.55, 62.55, 25.55, 17.55, 39.55, 51.55, 2.55, 14.55),
                         x2 = c(2.45, 78.45, 39.45, 25.45, 51.45, 62.45, 14.45, 17.45),
@@ -751,10 +767,11 @@ snpAdmixA = ggplot(snpStrDat, aes(x = Order, y = Fraction, fill = Ancestry)) +
   scale_fill_manual(values = colPalStr) +
   scale_color_brewer(palette = "Dark2") +
   coord_cartesian(ylim = c(-.01,1.01), clip = "off") +
+  ggtitle("SNP") +
   theme_bw()
 
 snpAdmix = snpAdmixA + theme(
-  plot.title = element_text(hjust = 0.5),
+  plot.title = element_text(size = 16),
   plot.background = element_rect(fill = NA, color = NA),
   panel.grid = element_blank(),
   panel.background = element_rect(fill = NA, color = "black"),
@@ -770,7 +787,8 @@ snpAdmix = snpAdmixA + theme(
   strip.text = element_text(size = 16, angle = 90, hjust = 1, vjust = 0.1, color = NA),
   legend.key = element_blank(),
   legend.title = element_blank(),
-  legend.position = "none")
+  legend.position = "none"
+)
 
 snpAdmix
 ```
@@ -783,8 +801,8 @@ combinedAdmix = (msStructure / snpAdmix) +
 
 combinedAdmix
 
-ggsave("../rMarkdown/Figure7.tiff", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
-ggsave("../rMarkdown/Figure7.eps", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
+ggsave("../figures/Figure7.tiff", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
+ggsave("../figures/Figure7.eps", plot = combinedAdmix, width = 30, height = 20, units = "cm", dpi = 300)
 ```
 
 ## Figure 8: Algal symbiont proxy assemblages
@@ -837,13 +855,127 @@ zooxPlot = zooxPlotA + theme(
 
 zooxPlot
 
-ggsave("../rMarkdown/Figure8.tiff", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
-ggsave("../rMarkdown/Figure8.eps", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
+ggsave("../figures/Figure8.tiff", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
+ggsave("../figures/Figure8.eps", plot = zooxPlot, width = 34.35, height = 12.5, units = "cm", dpi = 300)
 ```
 
 # Supplementary Figures
+## Supplementary Figure S1: Model probability plots
+### Log probability of $K$ plot
+```{r, log K plot, fig.dim = c(4, 4)}
+strctrHrvstr = read.csv("structureHarvesterOut.csv", header = TRUE)
+head(strctrHrvstr)
+bestStr = strctrHrvstr[1,]
 
-## Supplementary Figure S1: Mantel Isolation-by-Distance
+logKPlotA = ggplot(strctrHrvstr, aes(x = K, y = Mean.LnP.K.)) +
+  geom_point(color = "black", size = 3) +
+  geom_point(data = bestStr, aes(x = K, y = Mean.LnP.K.), fill = "red", size = 3,  shape = 21) +
+  geom_errorbar(aes(ymin = Mean.LnP.K. - Stdev.LnP.K., 
+                    ymax = Mean.LnP.K. + Stdev.LnP.K.), width = 0.65) +
+  scale_x_continuous(breaks = seq(0,12, by = 2)) +
+  labs(y = "Mean Ln(probability)") +
+  ggtitle("Microsatellite") +
+  theme_bw()
+
+logKPlot = logKPlotA + theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_text(size = 14, color = "black"),
+  axis.text= element_text(size = 12, color = "black"),
+  axis.line = element_blank(),
+  panel.border = element_rect(size = 1))
+
+logKPlot
+```
+
+### $\Delta K$ plot
+```{r, deltaK plot, fig.dim = c(4, 4)}
+bestDK = strctrHrvstr[2,]
+
+deltaKPlotA = ggplot(strctrHrvstr, aes(x = K, y = Delta.K), color = "black") +
+  geom_path(size = 1, aes(x = K)) +
+  geom_point(size = 3) +
+  geom_point(data = bestDK, aes(x = K, y = Delta.K), fill = "red", size = 3,  shape = 21) +
+  scale_x_continuous(breaks = seq(0,12, by = 2)) +
+  labs(y = expression(paste(Delta, italic("K")))) +
+  ggtitle("Microsatellite") +
+  theme_bw()
+
+deltaKPlot = deltaKPlotA + theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_text(size = 14, color = "black"),
+  axis.text= element_text(size = 12, color = "black"),
+  axis.line = element_blank(),
+  panel.border = element_rect(size = 1))
+
+deltaKPlot
+```
+
+### Bayesian Information Criterion (BIC) plot
+```{r, BIC plot, fig.dim = c(4, 4)}
+snpBIC = read.csv("BIC_Values.csv", header = TRUE)
+head(snpBIC)
+
+bestBIC = snpBIC[2,]
+
+bicPlotA = ggplot(snpBIC, aes(x = Number.of.Clusters..K., y = BIC), color = "black") +
+  geom_point(size = 3) +
+  geom_path(size = 1) +
+  geom_point(data = bestBIC, aes(x = Number.of.Clusters..K., y = BIC), fill = "red", size = 3,  shape = 21) +
+  scale_x_continuous(breaks = seq(0,12, by = 2)) +
+  labs(y = "BIC") +
+  ggtitle("SNP") +
+  theme_bw()
+
+bicPlot = bicPlotA + theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_text(size = 14, color = "black"),
+  axis.text= element_text(size = 12, color = "black"),
+  axis.line = element_blank(),
+  panel.border = element_rect(size = 1))
+
+bicPlot
+```
+
+### Admixture cross-validation plot
+```{r, model cross validation plot, fig.dim = c(4, 4)}
+cvAdmix = read.csv("CV_Values_ADMIXTURE.csv", header =TRUE)
+bestCV = cvAdmix[1,]
+
+cvPlotA = ggplot(cvAdmix, aes(x = Number.of.clusters, y = Model.Cross.Validation.Values), color = "black") +
+  geom_point(size = 3) +
+  geom_path(size = 1) +
+  geom_point(data = bestCV, aes(x = Number.of.clusters, y = Model.Cross.Validation.Values), fill = "red", size = 3,  shape = 21) +
+  scale_x_continuous(breaks = seq(0,12, by = 2)) +
+  labs(y = "Model cross validation") +
+  ggtitle("SNP") +
+  theme_bw()
+
+cvPlot = cvPlotA + theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_text(size = 14, color = "black"),
+  axis.text= element_text(size = 12, color = "black"),
+  axis.line = element_blank(),
+  panel.border = element_rect(size = 1))
+
+cvPlot
+```
+
+### Combine all plots
+```{r, grop model plots, fig.dim = c(6.7, 6.3)}
+modelKPlots = (logKPlot | deltaKPlot)/(bicPlot|cvPlot) +
+  plot_layout(widths = c(20,1,20)) +
+  plot_annotation(caption = expression(paste("Genetic clusters (",italic(K),")")),
+                  theme = theme(plot.caption = element_text(size = 14, hjust = 0.5))) +
+  plot_annotation(tag_level = "a") &
+  theme(plot.tag = element_text(size = 16, face = "bold"))
+
+modelKPlots
+
+ggsave("../figures/FigureS1.tiff", width = 17, height = 16, units = "cm", dpi = 300)
+ggsave("../figures/FigureS1.eps", width = 17, height = 16, units = "cm", dpi = 300)
+```
+
+## Supplementary Figure S2: Mantel Isolation-by-Distance
 First we can calculate the geographic distances:
 ```{r, geographic distances}
 
@@ -898,7 +1030,7 @@ GeoDistanceInMetresMatrix = function(df.geopoints) {
 ```
 
 ### Microsatellites
-####Mantel's test
+#### Mantel's test
 ```{r, ms mantel}
 coords = read.csv ("xycoords.csv", header=TRUE) # tab-separated file for all pops
 
@@ -914,7 +1046,7 @@ msIBD = mantel.randtest(dGeo, msNeiDistMa)
 msIBD
 ```
 
-####Microsatellite Mantel plot
+#### Microsatellite Mantel plot
 ```{r, ms mantel plot, fig.dim = c(4.9, 4.9)}
 msNei =  melt(as.matrix(msNeiDistMa), varnames = c("row", "col"), value.name = "nei")
 msNei = msNei[msNei$row > msNei$col,]
@@ -937,6 +1069,7 @@ msMantelA = ggplot(data = msMantelDF, aes(x = geo, y = nei)) +
            label = paste("r = ", round(msIBD$obs, 3), "; p = ", msIBD$pvalue), 
            size = 4, alpha = 0.6) +
   labs(x = "Geographic distance (km)", y = expression(paste("Nei's genetic distance (",italic("D"),")"))) +
+  ggtitle("Microsatellite") +
   theme_bw()
 
 msMantel = msMantelA + theme(
@@ -957,7 +1090,7 @@ msMantel
 ```
 
 ### SNPs
-####Mantel's test
+#### Mantel's test
 ```{r, SNP mantel}
 # Isolation by distance
 popdata<-read.table("vcf_popmap")
@@ -972,7 +1105,7 @@ snpIBD = mantel.randtest(dGeo,snpNeiDist)
 snpIBD
 ```
 
-####SNP Mantel plot
+#### SNP Mantel plot
 ```{r, SNP mantel plot, fig.dim = c(4.9, 4.9)}
 snpNei =  melt(as.matrix(snpNeiDist), varnames = c("row", "col"), value.name = "nei")
 snpNei = snpNei[snpNei$row != snpNei$col,]
@@ -991,6 +1124,7 @@ snpMantelA = ggplot(data = snpMantelDF, aes(x = geo, y = nei)) +
            label = paste("r = ", round(snpIBD$obs, 3), "; p = ", snpIBD$pvalue), 
            size = 4, alpha = 0.6) +             
   labs(x = "Geographic distance (km)", y = expression(paste("Nei's genetic distance (",italic("D"),")"))) +
+  ggtitle("SNP") +
   theme_bw()
 
 snpMantel = snpMantelA + theme(
@@ -1018,117 +1152,5 @@ mantelPlots = (msMantel | snpMantel) +
 
 mantelPlots
 
-ggsave("../rMarkdown/FigureS1.tiff", height = 12.5, width = 25, units = "cm", dpi = 300)
-```
-
-## Supplementary Figure S2: Model probability plots
-
-### Log probability of $K$ plot
-```{r, log K plot, fig.dim = c(4, 4)}
-strctrHrvstr = read.csv("structureHarvesterOut.csv", header = TRUE)
-head(strctrHrvstr)
-bestStr = strctrHrvstr[1,]
-
-logKPlotA = ggplot(strctrHrvstr, aes(x = K, y = Mean.LnP.K.)) +
-  geom_point(color = "black", size = 3) +
-  geom_point(data = bestStr, aes(x = K, y = Mean.LnP.K.), fill = "red", size = 3,  shape = 21) +
-  geom_errorbar(aes(ymin = Mean.LnP.K. - Stdev.LnP.K., 
-                    ymax = Mean.LnP.K. + Stdev.LnP.K.), width = 0.65) +
-  scale_x_continuous(breaks = seq(0,12, by = 2)) +
-  labs(y = "Mean Ln(probability)") +
-  theme_bw()
-
-logKPlot = logKPlotA + theme(
-  axis.title.x = element_blank(),
-  axis.title.y = element_text(size = 14, color = "black"),
-  axis.text= element_text(size = 12, color = "black"),
-  axis.line = element_blank(),
-  panel.border = element_rect(size = 1))
-
-logKPlot
-```
-
-### $\Delta K$ plot
-```{r, deltaK plot, fig.dim = c(4, 4)}
-bestDK = strctrHrvstr[2,]
-
-deltaKPlotA = ggplot(strctrHrvstr, aes(x = K, y = Delta.K), color = "black") +
-  geom_path(size = 1, aes(x = K)) +
-  geom_point(size = 3) +
-  geom_point(data = bestDK, aes(x = K, y = Delta.K), fill = "red", size = 3,  shape = 21) +
-  scale_x_continuous(breaks = seq(0,12, by = 2)) +
-  labs(y = expression(paste(Delta, italic("K")))) +
-  theme_bw()
-
-deltaKPlot = deltaKPlotA + theme(
-  axis.title.x = element_blank(),
-  axis.title.y = element_text(size = 14, color = "black"),
-  axis.text= element_text(size = 12, color = "black"),
-  axis.line = element_blank(),
-  panel.border = element_rect(size = 1))
-
-deltaKPlot
-```
-
-### Bayesian Information Criterion (BIC) plot
-```{r, BIC plot, fig.dim = c(4, 4)}
-snpBIC = read.csv("BIC_Values.csv", header = TRUE)
-head(snpBIC)
-
-bestBIC = snpBIC[2,]
-
-bicPlotA = ggplot(snpBIC, aes(x = Number.of.Clusters..K., y = BIC), color = "black") +
-  geom_point(size = 3) +
-  geom_path(size = 1) +
-  geom_point(data = bestBIC, aes(x = Number.of.Clusters..K., y = BIC), fill = "red", size = 3,  shape = 21) +
-  scale_x_continuous(breaks = seq(0,12, by = 2)) +
-  labs(y = "BIC") +
-  theme_bw()
-
-bicPlot = bicPlotA + theme(
-  axis.title.x = element_blank(),
-  axis.title.y = element_text(size = 14, color = "black"),
-  axis.text= element_text(size = 12, color = "black"),
-  axis.line = element_blank(),
-  panel.border = element_rect(size = 1))
-
-bicPlot
-```
-
-### Admixture cross-validation plot
-```{r, model cross validation plot, fig.dim = c(4, 4)}
-cvAdmix = read.csv("CV_Values_ADMIXTURE.csv", header =TRUE)
-bestCV = cvAdmix[1,]
-
-cvPlotA = ggplot(cvAdmix, aes(x = Number.of.clusters, y = Model.Cross.Validation.Values), color = "black") +
-  geom_point(size = 3) +
-  geom_path(size = 1) +
-  geom_point(data = bestCV, aes(x = Number.of.clusters, y = Model.Cross.Validation.Values), fill = "red", size = 3,  shape = 21) +
-  scale_x_continuous(breaks = seq(0,12, by = 2)) +
-  labs(y = "Model cross validation") +
-  theme_bw()
-
-cvPlot = cvPlotA + theme(
-  axis.title.x = element_blank(),
-  axis.title.y = element_text(size = 14, color = "black"),
-  axis.text= element_text(size = 12, color = "black"),
-  axis.line = element_blank(),
-  panel.border = element_rect(size = 1))
-
-cvPlot
-```
-
-### Combine all plots
-```{r, grop model plots, fig.dim = c(6.7, 6.3)}
-modelKPlots = (logKPlot | deltaKPlot)/(bicPlot|cvPlot) +
-  plot_layout(widths = c(20,1,20)) +
-  plot_annotation(caption = expression(paste("Genetic clusters (",italic(K),")")),
-                  theme = theme(plot.caption = element_text(size = 14, hjust = 0.5))) +
-  plot_annotation(tag_level = "a") &
-  theme(plot.tag = element_text(size = 16, face = "bold"))
-
-modelKPlots
-
-ggsave("../rMarkdown/FigureS2.tiff", width = 17, height = 16, units = "cm", dpi = 300)
-ggsave("../rMarkdown/FigureS2.eps", width = 17, height = 16, units = "cm", dpi = 300)
+ggsave("../figures/FigureS2.tiff", height = 12.5, width = 25, units = "cm", dpi = 300)
 ```
