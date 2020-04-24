@@ -308,6 +308,9 @@ snpPcVar = round(snpPca1$eig/sum(snpPca1$eig)*100, 1)
 snpPca = merge(snpPca, aggregate(cbind(mean.x=PC1,mean.y=PC2)~site,snpPca, mean), by="site")
 
 # SNP PCA biplot
+plotPops = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías",
+             "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la Juventud")
+
 cubaSnpPcaPlotA = ggplot(snpPca, aes(x = PC1, y = PC2, color = site, fill = site, shape = depth)) +
   geom_hline(yintercept = 0, color = "gray90", size = 0.5) +
   geom_vline(xintercept = 0, color = "gray90", size = 0.5) + 
