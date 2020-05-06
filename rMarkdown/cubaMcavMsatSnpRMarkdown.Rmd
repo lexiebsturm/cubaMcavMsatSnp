@@ -1036,7 +1036,7 @@ GeoDistanceInMetresMatrix = function(df.geopoints) {
 ### Microsatellites
 #### Mantel's test
 ```{r, ms mantel}
-coords = read.csv ("xycoords.csv", header=TRUE) # tab-separated file for all pops
+coords = read.csv("xycoords.csv", header=TRUE) # tab-separated file for all pops
 
 dGeo = as.dist(GeoDistanceInMetresMatrix(coords)/1000, diag = T)
 
