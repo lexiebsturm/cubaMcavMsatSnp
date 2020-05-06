@@ -11,8 +11,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(warning = FALSE, fig.align = 'left')
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, fig.align = 'left')
 knitr::opts_knit$set(root.dir = '../data')
 options(width = 88, scipen = 4)
 ```
@@ -314,12 +313,12 @@ plotPops = c("Banco de San Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jut
 cubaSnpPcaPlotA = ggplot(snpPca, aes(x = PC1, y = PC2, color = site, fill = site, shape = depth)) +
   geom_hline(yintercept = 0, color = "gray90", size = 0.5) +
   geom_vline(xintercept = 0, color = "gray90", size = 0.5) + 
-  geom_segment(aes(x = mean.x, y = mean.y, xend = PC1, yend = PC2)) + #spider
+  geom_segment(aes(xend = mean.x, yend = mean.y, color = site)) + #spider
   geom_point(shape = 19, size = 3) + #individual's points indicated by circles
   geom_point(aes(x = mean.x, y = mean.y, shape = depth), size = 4, color = "black") + #population centroids indicated by triangles
   scale_shape_manual(values = c(24,25), name = "Depth") +
   scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population", labels = plotPops) +
-  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population", labels = plotPops, guides(order = 0)) +  
+  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population", labels = plotPops) +  
   xlab(paste ("PC 1 (", snpPcVar[1],"%)", sep = "")) + #Prints percent variation explained by first axis
   ylab(paste ("PC 2 (", snpPcVar[2],"%)", sep = "")) + #Prints percent variation explained by second axis
   guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, color = NA), order = 1))+
@@ -426,15 +425,15 @@ mSatPcVar
 mSatPca = merge(mSatPca, aggregate(cbind(mean.x = PC1, mean.y = PC2) ~ site, mSatPca, mean), by = "site")
 
 # construct PCA biplot
-cubaMsatPcaPlotA = ggplot(mSatPca, aes(x, y, color = site, fill = site)) +
+cubaMsatPcaPlotA = ggplot(data = mSatPca, aes(x = PC1, y = PC2)) +
   geom_hline(yintercept = 0, color = "gray90", size = 0.5) +
   geom_vline(xintercept = 0, color = "gray90", size = 0.5) + 
-  geom_segment(aes(x = mean.x, y = mean.y, xend = PC1, yend = PC2)) + #spider
-  geom_point(aes(x = PC1, y = PC2), shape = 19, size = 3) + #individuals
-  geom_point(aes(x = mean.x, y = mean.y, shape = depth), size = 4, color = "black") + #centroids
-  scale_shape_manual(values = c(24,25), name = "Depth") +
+  geom_segment(aes(xend = mean.x, yend = mean.y, color = site)) + #spider
+  geom_point(data = mSatPca, aes(x = PC1, y = PC2, color = site), shape = 19, size = 3) + #individuals
+  geom_point(data = mSatPca, aes(x = mean.x, y = mean.y, shape = depth, fill = site), size = 4, color = "black") + #centroids
+  scale_shape_manual(values = c(24, 25), name = "Depth") +
   scale_fill_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population", labels = plotPops) +
-  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population", labels = plotPops, guides(order = 0)) +
+  scale_color_manual(values = brewer.pal(name = "Dark2", n = 8), name = " Population", labels = plotPops) +
   xlab(paste ("PC 1 (", mSatPcVar[1],"%)", sep = "")) +
   ylab(paste ("PC 2 (", mSatPcVar[2],"%)", sep = "")) +
   guides(fill = guide_legend(override.aes = list(size = 4, shape = 22, color = NA), order = 1))+
@@ -456,8 +455,6 @@ cubaMsatPcaPlot = cubaMsatPcaPlotA +
         plot.background = element_rect(fill = "white"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-
-
 
 cubaMsatPcaPlot
 ```
