@@ -831,7 +831,7 @@ ggsave("../figures/Figure7.eps", plot = combinedAdmix, width = 30, height = 20, 
 
 ## Figure 8: Algal symbiont proxy assemblages
 ```{r, zooxPlot, fig.dim = c(13.5, 4.9)}
-dfZoox = read.csv("zoox-proportions.csv")
+dfZoox = read.csv("zooxProportionsUpdated.csv")
 dfZoox$Order = c(1:nrow(dfZoox))
 
 strPops = c("Banco de \nSan Antonio", "Cabo Lucrecia", "Cayo Anclitas", "Cayo Jutías", "Cayo Sabinal", "Chivirico", "Guanahacabibes", "Isla de la \nJuventud")
