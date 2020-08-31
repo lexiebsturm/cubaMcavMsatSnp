@@ -229,8 +229,9 @@ msDendA = ggplot() +
 
 msDend = msDendA + theme(
   legend.key = element_blank(),
-  legend.title = element_text(size = 14),
-  legend.text = element_text(size = 12))
+  plot.title = element_text(size = 18, color = "black"),
+  legend.title = element_text(size = 18,color = "black"),
+  legend.text = element_text(size = 16,color = "black"))
 
 msDend
 ```
@@ -263,8 +264,9 @@ snpDendA = ggplot() +
 
 snpDend = snpDendA + theme(
   legend.key = element_blank(),
-  legend.title = element_text(size = 14),
-  legend.text = element_text(size = 12))
+  plot.title = element_text(size = 18, color = "black"),
+  legend.title = element_text(size = 18,color = "black"),
+  legend.text = element_text(size = 16,color = "black"))
 
 snpDend
 ```
@@ -277,7 +279,7 @@ Please note that for all of these figures, figures generated from the microsatel
 combinedDendro = (msDend / snpDend) +
 plot_layout(guides = "collect") + # collapses the legends into one
   plot_annotation(tag_level = "a") & # labels the plots a and b
-  theme(plot.tag = element_text(size = 18, face = "bold"))
+  theme(plot.tag = element_text(size = 20, face = "bold"))
 
 combinedDendro
 
@@ -625,7 +627,7 @@ msHeatmap = heatmap + theme(
   legend.direction = "vertical",
   legend.title = element_text(size = 16), 
   legend.text = element_text(size = 14),
-  plot.title = element_text(size = 16)
+  plot.title = element_text(size = 18)
 ) 
   
 msHeatmap
@@ -694,7 +696,7 @@ snpHeatmap = snpHeatmapA + theme(
   legend.direction = "vertical",
   legend.title = element_text(size = 16),
   legend.text = element_text(size = 14),
-  plot.title = element_text(size = 16)
+  plot.title = element_text(size = 18)
 )
 
 snpHeatmap
@@ -853,7 +855,7 @@ zooxPlotA = ggplot(data = zDat, aes(x = Order, y = Fraction, fill = Symbiont, or
   xlab("Population") +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0), labels = function(x) paste0(x*100, "%")) +
-  scale_fill_manual(values = colPalZoox, name = "Symbiodiniaceae genus") +
+  scale_fill_manual(values = colPalZoox, name = "Symbiodiniaceae \ngenus", breaks = zDat$Symbiont) +
   geom_segment(data = popAnnoZoox, aes(x = x1, xend = x2, y = y1, yend = y2, color = strPops), size = 3) +
   scale_color_brewer(palette = "Dark2") +
   geom_text(data = popAnnoZoox, aes(x = (x2-.05), y = (y1-.05), label = Population), angle = 75, hjust = 1, vjust = 0, size = 5, lineheight = 0.65) +
@@ -869,13 +871,14 @@ zooxPlot = zooxPlotA + theme(
   panel.border = element_rect(color = "black", size = 2, linetype = "solid"),
   axis.text.x=element_blank(),
   axis.text.y=element_text(size = 12, color = "black"),
-  axis.title.x=element_text(size = 16),
+  axis.title.x=element_text(size = 16, color = "black"),
   axis.title.y = element_blank(),
   axis.ticks.x=element_blank(),
   axis.ticks.y = element_line(color = "black"),
   strip.text=element_text(size = 16, angle = 90, hjust = 1, vjust = 0, color = NA),
   strip.background = element_blank(),
-  legend.text = element_text(face = "italic"))
+  legend.title = element_text(size = 14, color = "black"),
+  legend.text = element_text(face = "italic", size = 13, color = "black"))
 
 zooxPlot
 
